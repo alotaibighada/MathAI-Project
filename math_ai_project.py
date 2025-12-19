@@ -1,8 +1,7 @@
 import streamlit as st
 from sympy import symbols, Eq, solve, sympify, degree, diff
 import numpy as np
-import plotly.graph_objects as go
-from scipy.interpolate import make_interp_spline
+import matplotlib.pyplot as plt
 
 # =====================
 # إعداد الصفحة
@@ -16,11 +15,10 @@ mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تع
 # =====================
 # Tabs للفصل بين الوظائف
 # =====================
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3 = st.tabs([
     "🔢 العمليات الحسابية",
     "📐 حل المعادلات",
-    "📊 رسم وتحليل الدوال",
-    "✍️ رسم الدالة عبر نقاط"
+    "📊 رسم وتحليل الدوال"
 ])
 
 # ---------------------
@@ -82,15 +80,14 @@ with tab2:
             st.error(f"❌ صيغة المعادلة غير صحيحة: {e}")
 
 # ---------------------
-# Tab 3: رسم وتحليل الدوال
+# Tab 3: رسم وتحليل الدوال (بالتمثيل البياني التقليدي)
 # ---------------------
 with tab3:
     st.header("📊 رسم وتحليل الدوال")
-
     func_text_input = st.text_input("أدخل الدالة (مثال: x**2 - 4*x + 3)")
-    color = st.color_picker("اختر لون المنحنى", "#1f77b4")
     x_min, x_max = st.slider("اختر نطاق x", -100, 100, (-10, 10))
     y_min, y_max = st.slider("اختر نطاق y", -100, 100, (-10, 10))
+    color = st.color_picker("اختر لون المنحنى", "#1f77b4")
     example = st.button("✨ جرب مثال جاهز")
     draw_button = st.button("ارسم الدالة")
 
@@ -99,33 +96,40 @@ with tab3:
     if draw_button:
         try:
             f = sympify(func_text)
-            xs = np.linspace(x_min, x_max, 1000)
+            xs = np.linspace(x_min, x_max, 500)
             ys = np.array([float(f.subs(x, val)) for val in xs])
 
-            deg = degree(f)
-            dtype = "ثابتة" if deg==0 else "خطية" if deg==1 else "تربيعية" if deg==2 else "تكعيبية" if deg==3 else f"درجة {deg} أو أعلى"
-            st.info(f"🔍 نوع الدالة: {dtype}")
-
+            # نقاط التقاطع الحقيقية
             roots = solve(f, x)
             real_roots = [float(r.evalf()) for r in roots if r.is_real]
 
+            # النقاط الحرجة
             df = diff(f, x)
             crit_points = solve(df, x)
             real_crit = [float(p.evalf()) for p in crit_points if p.is_real]
             crit_vals = [float(f.subs(x, p)) for p in real_crit]
 
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines', name='الدالة', line=dict(color=color)))
-            if real_roots:
-                fig.add_trace(go.Scatter(x=real_roots, y=[0]*len(real_roots), mode='markers', name='تقاطع x', marker=dict(color='red', size=10)))
-            if real_crit:
-                fig.add_trace(go.Scatter(x=real_crit, y=crit_vals, mode='markers', name='نقاط حرجة', marker=dict(color='green', size=10)))
-            fig.update_layout(title=f"رسم الدالة: {func_text}", xaxis_title="x", yaxis_title="y",
-                              xaxis=dict(range=[x_min, x_max]), yaxis=dict(range=[y_min, y_max]),
-                              template="plotly_white")
-            st.plotly_chart(fig, use_container_width=True)
+            # رسم التمثيل البياني التقليدي
+            fig, ax = plt.subplots(figsize=(8,5))
+            ax.plot(xs, ys, label='الدالة', color=color)
+            ax.axhline(0, color='black', linewidth=1)  # محور x
+            ax.axvline(0, color='black', linewidth=1)  # محور y
+            ax.grid(True, linestyle='--', alpha=0.7)
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_title(f"رسم الدالة: {func_text}")
 
-            table_x = np.linspace(x_min, x_max, 11)
+            # نقاط التقاطع الحمراء
+            ax.scatter(real_roots, [0]*len(real_roots), color='red', label='نقاط التقاطع')
+
+            # النقاط الحرجة الخضراء
+            ax.scatter(real_crit, crit_vals, color='green', label='النقاط الحرجة')
+
+            ax.legend()
+            st.pyplot(fig)
+
+            # جدول قيم x و y
+            table_x = np.linspace(-5, 5, 11)
             table_y = [float(f.subs(x, val)) for val in table_x]
             st.subheader("📋 جدول قيم x و y")
             st.table({"x": table_x, "y": table_y})
@@ -133,47 +137,3 @@ with tab3:
         except Exception as e:
             st.error(f"❌ خطأ في الدالة: {e}")
 
-# ---------------------
-# Tab 4: رسم الدالة عبر نقاط (بديل الرسم اليدوي)
-# ---------------------
-with tab4:
-    st.header("✍️ رسم الدالة عبر إدخال نقاط x و y")
-    st.markdown("أدخل مجموعة من النقاط (x, y) بصيغة: x1,y1;x2,y2;...")
-
-    points_text = st.text_area(
-        "مثال: 0,0;1,1;2,4;3,9",
-        "0,0;1,1;2,4;3,9"
-    )
-
-    draw_button_manual = st.button("ارسم الدالة")
-
-    if draw_button_manual:
-        try:
-            points = points_text.split(";")
-            xs, ys = [], []
-            for p in points:
-                x_val, y_val = p.split(",")
-                xs.append(float(x_val.strip()))
-                ys.append(float(y_val.strip()))
-
-            # تقريب الدالة باستخدام Spline
-            xs_sorted, ys_sorted = zip(*sorted(zip(xs, ys)))
-            xs_new = np.linspace(min(xs_sorted), max(xs_sorted), 500)
-            spline = make_interp_spline(xs_sorted, ys_sorted, k=3)
-            ys_new = spline(xs_new)
-
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(x=xs_new, y=ys_new, mode='lines+markers', name='الدالة المرسومة'))
-            fig.update_layout(title="الدالة المرسومة من النقاط", xaxis_title="x", yaxis_title="y",
-                              template="plotly_white")
-            st.plotly_chart(fig, use_container_width=True)
-
-            st.subheader("📋 جدول قيم x و y")
-            table_x = np.linspace(min(xs_sorted), max(xs_sorted), 11)
-            table_y = spline(table_x)
-            st.table({"x": table_x, "y": table_y})
-
-            st.success("✅ تم رسم وتحليل الدالة بنجاح!")
-
-        except Exception as e:
-            st.error(f"❌ خطأ أثناء معالجة النقاط: {e}")
