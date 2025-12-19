@@ -2,6 +2,8 @@ import streamlit as st
 from sympy import symbols, Eq, solve, sympify, degree, diff
 import numpy as np
 import matplotlib.pyplot as plt
+import arabic_reshaper
+from bidi.algorithm import get_display
 
 # =====================
 # إعداد الصفحة
@@ -80,7 +82,7 @@ with tab2:
             st.error(f"❌ صيغة المعادلة غير صحيحة: {e}")
 
 # ---------------------
-# Tab 3: رسم وتحليل الدوال (بالتمثيل البياني التقليدي)
+# Tab 3: رسم وتحليل الدوال (بالتمثيل البياني التقليدي ودعم العربية)
 # ---------------------
 with tab3:
     st.header("📊 رسم وتحليل الدوال")
@@ -109,21 +111,25 @@ with tab3:
             real_crit = [float(p.evalf()) for p in crit_points if p.is_real]
             crit_vals = [float(f.subs(x, p)) for p in real_crit]
 
+            # إعادة تشكيل النص العربي
+            title_text = get_display(arabic_reshaper.reshape(f"رسم الدالة: {func_text}"))
+            label_roots = get_display(arabic_reshaper.reshape("نقاط التقاطع"))
+            label_crit = get_display(arabic_reshaper.reshape("النقاط الحرجة"))
+
             # رسم التمثيل البياني التقليدي
             fig, ax = plt.subplots(figsize=(8,5))
-            ax.plot(xs, ys, label='الدالة', color=color)
+            ax.plot(xs, ys, label=get_display(arabic_reshaper.reshape("الدالة")), color=color)
             ax.axhline(0, color='black', linewidth=1)  # محور x
             ax.axvline(0, color='black', linewidth=1)  # محور y
             ax.grid(True, linestyle='--', alpha=0.7)
-            ax.set_xlabel('x')
-            ax.set_ylabel('y')
-            ax.set_title(f"رسم الدالة: {func_text}")
+            ax.set_xlabel(get_display(arabic_reshaper.reshape('x')))
+            ax.set_ylabel(get_display(arabic_reshaper.reshape('y')))
+            ax.set_title(title_text)
 
             # نقاط التقاطع الحمراء
-            ax.scatter(real_roots, [0]*len(real_roots), color='red', label='نقاط التقاطع')
-
+            ax.scatter(real_roots, [0]*len(real_roots), color='red', label=label_roots)
             # النقاط الحرجة الخضراء
-            ax.scatter(real_crit, crit_vals, color='green', label='النقاط الحرجة')
+            ax.scatter(real_crit, crit_vals, color='green', label=label_crit)
 
             ax.legend()
             st.pyplot(fig)
@@ -131,9 +137,8 @@ with tab3:
             # جدول قيم x و y
             table_x = np.linspace(-5, 5, 11)
             table_y = [float(f.subs(x, val)) for val in table_x]
-            st.subheader("📋 جدول قيم x و y")
+            st.subheader(get_display(arabic_reshaper.reshape("📋 جدول قيم x و y")))
             st.table({"x": table_x, "y": table_y})
 
         except Exception as e:
             st.error(f"❌ خطأ في الدالة: {e}")
-
