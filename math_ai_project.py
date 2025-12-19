@@ -1,8 +1,11 @@
 import streamlit as st
-from sympy import symbols, Eq, solve, sympify, degree
+from sympy import symbols, Eq, solve, sympify, degree, diff
 import matplotlib.pyplot as plt
 import numpy as np
 
+# =====================
+# إعداد الصفحة
+# =====================
 st.set_page_config(page_title="Math AI Project", layout="wide")
 st.title("🧮 Math AI – مشروع علمي ذكي")
 
@@ -19,6 +22,7 @@ b = st.number_input("الرقم الثاني", value=0)
 op = st.selectbox("العملية", ["جمع", "طرح", "ضرب", "قسمة"])
 
 if st.button("احسب"):
+    r = None
     if op == "جمع":
         r = a + b
     elif op == "طرح":
@@ -27,14 +31,13 @@ if st.button("احسب"):
         r = a * b
     elif op == "قسمة":
         if b == 0:
-            st.error("لا يمكن القسمة على صفر")
-            r = None
+            st.error("❌ لا يمكن القسمة على صفر")
         else:
             r = a / b
     if r is not None:
-        st.success(f"النتيجة = {r}")
+        st.success(f"✅ النتيجة = {r}")
         if mode == "👩‍🎓 وضع تعليمي":
-            st.info("تم تطبيق العملية الحسابية على الرقمين مباشرة")
+            st.info("💡 تم تطبيق العملية الحسابية على الرقمين مباشرة")
 
 # =====================
 # حل المعادلات خطوة بخطوة
@@ -51,19 +54,30 @@ if st.button("حل المعادلة"):
         if mode == "👩‍🎓 وضع تعليمي":
             st.write("🔹 الخطوة 1: المعادلة الأصلية")
             st.write(eq_text)
-            st.write("🔹 الخطوة 2: حل المعادلة")
-        st.success(f"الحل النهائي: x = {sol}")
+            
+            # خطوات تبسيطية (توضيحية)
+            lhs_simplified = sympify(left) - sympify(right)
+            st.write(f"🔹 الخطوة 2: نقل الحدود للحصول على 0 = ...")
+            st.write(f"0 = {lhs_simplified}")
+            
+        st.success(f"✅ الحل النهائي: x = {sol}")
     except:
-        st.error("صيغة المعادلة غير صحيحة")
+        st.error("❌ صيغة المعادلة غير صحيحة")
 
 # =====================
-# رسم وتحليل الدوال (تم تعديل بسيط)
+# رسم وتحليل الدوال
 # =====================
 st.header("📊 رسم وتحليل الدوال")
 
-example = st.button("✨ جرب مثال جاهز")
-func_text_input = st.text_input("أدخل الدالة (مثال: x**2 - 4*x + 3)")
-func_text = "x**2 - 4*x + 3" if example else func_text_input
+col1, col2 = st.columns(2)
+
+with col1:
+    example = st.button("✨ جرب مثال جاهز")
+    func_text_input = st.text_input("أدخل الدالة (مثال: x**2 - 4*x + 3)")
+    func_text = "x**2 - 4*x + 3" if example else func_text_input
+
+with col2:
+    color = st.color_picker("اختر لون المنحنى", "#1f77b4")
 
 draw_button = st.button("ارسم الدالة")
 
@@ -73,19 +87,24 @@ if draw_button:
         xs = np.linspace(-10, 10, 400)
         ys = [float(f.subs(x, val)) for val in xs]
 
+        # تحديد نوع الدالة
         deg = degree(f)
-        if deg == 1:
+        if deg == 0:
+            dtype = "ثابتة"
+        elif deg == 1:
             dtype = "خطية"
         elif deg == 2:
             dtype = "تربيعية"
         elif deg == 3:
             dtype = "تكعيبية"
         else:
-            dtype = "غير محددة"
+            dtype = f"درجة {deg} أو أعلى"
+
         st.info(f"🔍 نوع الدالة: {dtype}")
 
+        # رسم المنحنى
         fig, ax = plt.subplots()
-        ax.plot(xs, ys, label="الدالة")
+        ax.plot(xs, ys, label="الدالة", color=color)
         ax.axhline(0, color='black', linewidth=1)
         ax.axvline(0, color='black', linewidth=1)
         ax.grid(True)
@@ -93,14 +112,27 @@ if draw_button:
         ax.set_ylabel("y")
         ax.set_title(f"رسم الدالة: {func_text}")
 
-        # نقاط التقاطع الحقيقية فقط
+        # نقاط التقاطع الحقيقية
         roots = solve(f, x)
         real_roots = [float(r) for r in roots if r.is_real]
         ax.scatter(real_roots, [0]*len(real_roots), color="red", label="نقاط التقاطع")
 
+        # النقاط الحرجة (المشتقة = 0)
+        df = diff(f, x)
+        crit_points = solve(df, x)
+        real_crit = [float(p) for p in crit_points if p.is_real]
+        ax.scatter(real_crit, [float(f.subs(x, p)) for p in real_crit], color="green", label="نقاط حرجة")
+
         ax.legend()
         st.pyplot(fig)
 
+        # جدول قيم x و y
+        st.subheader("📋 جدول قيم x و y")
+        table_x = np.linspace(-5, 5, 11)
+        table_y = [float(f.subs(x, val)) for val in table_x]
+        st.table({"x": table_x, "y": table_y})
+
+        # سؤال الفهم
         understand = st.radio(
             "🤔 هل فهمت شكل الدالة؟",
             ["— اختر —", "👍 نعم، فهمت", "❓ لا، أحتاج شرح"]
@@ -112,8 +144,9 @@ if draw_button:
             🔍 شرح مبسّط:
             • المنحنى يوضّح كيف تتغير قيمة y عند تغيير x  
             • نقاط التقاطع تمثل حلول الدالة  
-            • شكل المنحنى يساعد على التنبؤ بالسلوك
+            • النقاط الحرجة تمثل أعلى وأدنى القيم للمنحنى  
+            • جدول القيم يساعد على تصور العلاقة بين x و y
             """)
 
     except Exception as e:
-        st.error(f"خطأ في الدالة: {e}")
+        st.error(f"❌ خطأ في الدالة: {e}")
