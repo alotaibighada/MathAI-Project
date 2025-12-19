@@ -2,7 +2,6 @@ import streamlit as st
 from sympy import symbols, Eq, solve, sympify, degree, diff
 import numpy as np
 import plotly.graph_objects as go
-from streamlit_drawable_canvas import st_canvas
 from scipy.interpolate import make_interp_spline
 
 # =====================
@@ -21,7 +20,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "🔢 العمليات الحسابية",
     "📐 حل المعادلات",
     "📊 رسم وتحليل الدوال",
-    "✍️ رسم الدالة بخط اليد"
+    "✍️ رسم الدالة عبر نقاط"
 ])
 
 # ---------------------
@@ -131,71 +130,50 @@ with tab3:
             st.subheader("📋 جدول قيم x و y")
             st.table({"x": table_x, "y": table_y})
 
-            st.markdown(f"""
-            <div style='text-align: right; direction: rtl; line-height: 1.6; font-size: 14px;'>
-            🔍 <b>شرح مبسّط:</b><br>
-            • المنحنى يوضح كيف تتغير قيمة y عند تغيير x<br>
-            • النقاط الحمراء تمثل نقاط التقاطع مع محور x: {real_roots if real_roots else 'لا توجد'}<br>
-            • النقاط الخضراء تمثل النقاط الحرجة: {real_crit if real_crit else 'لا توجد'}<br>
-            • جدول القيم يساعد على تصور العلاقة بين x و y
-            </div>
-            """, unsafe_allow_html=True)
-
-            understand = st.radio(
-                "🤔 هل فهمت شكل الدالة؟",
-                ["— اختر —", "👍 نعم، فهمت", "❓ لا، أحتاج شرح"]
-            )
-            if understand == "👍 نعم، فهمت":
-                st.success("🎉 ممتاز! هذا يدل على فهمك لشكل الدالة والعلاقة بين x و y")
-            elif understand == "❓ لا، أحتاج شرح":
-                st.info("💡 حاول مراجعة المنحنى والنقاط مرة أخرى")
-
         except Exception as e:
             st.error(f"❌ خطأ في الدالة: {e}")
 
 # ---------------------
-# Tab 4: رسم الدالة بخط اليد
+# Tab 4: رسم الدالة عبر نقاط (بديل الرسم اليدوي)
 # ---------------------
 with tab4:
-    st.header("✍️ رسم الدالة بخط اليد وتحليلها")
-    st.markdown("ارسم الدالة على اللوحة أدناه، ثم اضغط 'تحويل ورسم'.")
+    st.header("✍️ رسم الدالة عبر إدخال نقاط x و y")
+    st.markdown("أدخل مجموعة من النقاط (x, y) بصيغة: x1,y1;x2,y2;...")
 
-    canvas_result = st_canvas(
-        fill_color="white",
-        stroke_width=3,
-        stroke_color="black",
-        background_color="white",
-        width=600,
-        height=400,
-        drawing_mode="freedraw",
-        key="canvas"
+    points_text = st.text_area(
+        "مثال: 0,0;1,1;2,4;3,9",
+        "0,0;1,1;2,4;3,9"
     )
 
-    if st.button("تحويل ورسم"):
-        if canvas_result.image_data is not None:
-            # الحصول على نقاط الرسم من الصورة
-            img = canvas_result.image_data[:,:,0]  # استخدام قناة واحدة (أبيض وأسود)
-            ys, xs = np.where(img < 128)  # النقاط الداكنة
-            if len(xs) > 5:
-                xs = xs - np.mean(xs)
-                xs = xs / np.max(np.abs(xs)) * 10  # تقريب نطاق x من -10 إلى 10
-                ys = -(ys - np.mean(ys))
-                ys = ys / np.max(np.abs(ys)) * 10  # تقريب نطاق y من -10 إلى 10
+    draw_button_manual = st.button("ارسم الدالة")
 
-                # تقريب الدالة باستخدام Spline
-                sorted_idx = np.argsort(xs)
-                xs_sorted = xs[sorted_idx]
-                ys_sorted = ys[sorted_idx]
-                spline = make_interp_spline(xs_sorted, ys_sorted, k=3)
-                xs_new = np.linspace(xs_sorted[0], xs_sorted[-1], 500)
-                ys_new = spline(xs_new)
+    if draw_button_manual:
+        try:
+            points = points_text.split(";")
+            xs, ys = [], []
+            for p in points:
+                x_val, y_val = p.split(",")
+                xs.append(float(x_val.strip()))
+                ys.append(float(y_val.strip()))
 
-                # رسم تفاعلي
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(x=xs_new, y=ys_new, mode='lines', name='الدالة المرسومة'))
-                fig.update_layout(title="الدالة المرسومة من خط اليد", xaxis_title="x", yaxis_title="y",
-                                  template="plotly_white")
-                st.plotly_chart(fig, use_container_width=True)
-                st.success("✅ تم تحويل الرسم اليدوي إلى دالة وتحليلها بنجاح!")
-            else:
-                st.error("❌ لم يتم اكتشاف أي رسم. حاول الرسم بشكل أوضح.")
+            # تقريب الدالة باستخدام Spline
+            xs_sorted, ys_sorted = zip(*sorted(zip(xs, ys)))
+            xs_new = np.linspace(min(xs_sorted), max(xs_sorted), 500)
+            spline = make_interp_spline(xs_sorted, ys_sorted, k=3)
+            ys_new = spline(xs_new)
+
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=xs_new, y=ys_new, mode='lines+markers', name='الدالة المرسومة'))
+            fig.update_layout(title="الدالة المرسومة من النقاط", xaxis_title="x", yaxis_title="y",
+                              template="plotly_white")
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.subheader("📋 جدول قيم x و y")
+            table_x = np.linspace(min(xs_sorted), max(xs_sorted), 11)
+            table_y = spline(table_x)
+            st.table({"x": table_x, "y": table_y})
+
+            st.success("✅ تم رسم وتحليل الدالة بنجاح!")
+
+        except Exception as e:
+            st.error(f"❌ خطأ أثناء معالجة النقاط: {e}")
