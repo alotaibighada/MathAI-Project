@@ -1,5 +1,5 @@
 import streamlit as st
-from sympy import symbols, Eq, solve, sympify, diff, sin, cos, exp, log
+from sympy import symbols, Eq, solve, sympify, diff, sin, cos, exp, log, latex
 import numpy as np
 import matplotlib.pyplot as plt
 import arabic_reshaper
@@ -92,9 +92,9 @@ with tab2:
                 st.latex(Eq(lhs_simplified, 0))
                 st.write("🔹 الحل خطوة بخطوة:")
                 for s in sol:
-                    st.latex(Eq(x, s))
+                    st.latex(f"x = {latex(s)}")
 
-            st.success(f"✅ الحل النهائي: x = {sol}")
+            st.success(f"✅ الحل النهائي: x = {[latex(s) for s in sol]}")
 
         except Exception as e:
             st.error(f"❌ صيغة المعادلة غير صحيحة: {e}")
@@ -134,14 +134,15 @@ with tab3:
             real_crit = [float(p.evalf()) for p in crit_points if p.is_real]
             crit_vals = [float(f.subs(x, p)) for p in real_crit]
 
-            # إعداد النصوص العربية مع إعادة تشكيل
+            # إعادة تشكيل النص العربي
             title_text = get_display(arabic_reshaper.reshape(f"رسم الدالة: {func_text}"))
+            label_func = get_display(arabic_reshaper.reshape("الدالة"))
             label_roots = get_display(arabic_reshaper.reshape("نقاط التقاطع"))
             label_crit = get_display(arabic_reshaper.reshape("النقاط الحرجة"))
 
             # رسم التمثيل البياني
             fig, ax = plt.subplots(figsize=(8,5))
-            ax.plot(xs, ys, label=get_display(arabic_reshaper.reshape("الدالة")), color=color)
+            ax.plot(xs, ys, label=label_func, color=color)
             ax.axhline(0, color='black', linewidth=1)
             ax.axvline(0, color='black', linewidth=1)
             ax.grid(True, linestyle='--', alpha=0.7)
