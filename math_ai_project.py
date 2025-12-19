@@ -2,6 +2,8 @@ import streamlit as st
 from sympy import symbols, Eq, solve, sympify, degree, diff
 import numpy as np
 import plotly.graph_objects as go
+from streamlit_drawable_canvas import st_canvas
+from scipy.interpolate import make_interp_spline
 
 # =====================
 # إعداد الصفحة
@@ -10,13 +12,17 @@ st.set_page_config(page_title="Math AI Project", layout="wide")
 st.title("🧮 Math AI – مشروع علمي ذكي")
 
 x = symbols("x")
-
 mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
 
 # =====================
 # Tabs للفصل بين الوظائف
 # =====================
-tab1, tab2, tab3 = st.tabs(["🔢 العمليات الحسابية", "📐 حل المعادلات", "📊 رسم وتحليل الدوال"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "🔢 العمليات الحسابية",
+    "📐 حل المعادلات",
+    "📊 رسم وتحليل الدوال",
+    "✍️ رسم الدالة بخط اليد"
+])
 
 # ---------------------
 # Tab 1: العمليات الحسابية
@@ -97,22 +103,18 @@ with tab3:
             xs = np.linspace(x_min, x_max, 1000)
             ys = np.array([float(f.subs(x, val)) for val in xs])
 
-            # نوع الدالة
             deg = degree(f)
             dtype = "ثابتة" if deg==0 else "خطية" if deg==1 else "تربيعية" if deg==2 else "تكعيبية" if deg==3 else f"درجة {deg} أو أعلى"
             st.info(f"🔍 نوع الدالة: {dtype}")
 
-            # نقاط التقاطع الحقيقية
             roots = solve(f, x)
             real_roots = [float(r.evalf()) for r in roots if r.is_real]
 
-            # النقاط الحرجة
             df = diff(f, x)
             crit_points = solve(df, x)
             real_crit = [float(p.evalf()) for p in crit_points if p.is_real]
             crit_vals = [float(f.subs(x, p)) for p in real_crit]
 
-            # رسم تفاعلي
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines', name='الدالة', line=dict(color=color)))
             if real_roots:
@@ -124,13 +126,11 @@ with tab3:
                               template="plotly_white")
             st.plotly_chart(fig, use_container_width=True)
 
-            # جدول قيم x و y
             table_x = np.linspace(x_min, x_max, 11)
             table_y = [float(f.subs(x, val)) for val in table_x]
             st.subheader("📋 جدول قيم x و y")
             st.table({"x": table_x, "y": table_y})
 
-            # شرح مبسط
             st.markdown(f"""
             <div style='text-align: right; direction: rtl; line-height: 1.6; font-size: 14px;'>
             🔍 <b>شرح مبسّط:</b><br>
@@ -141,7 +141,6 @@ with tab3:
             </div>
             """, unsafe_allow_html=True)
 
-            # سؤال الفهم
             understand = st.radio(
                 "🤔 هل فهمت شكل الدالة؟",
                 ["— اختر —", "👍 نعم، فهمت", "❓ لا، أحتاج شرح"]
@@ -153,3 +152,50 @@ with tab3:
 
         except Exception as e:
             st.error(f"❌ خطأ في الدالة: {e}")
+
+# ---------------------
+# Tab 4: رسم الدالة بخط اليد
+# ---------------------
+with tab4:
+    st.header("✍️ رسم الدالة بخط اليد وتحليلها")
+    st.markdown("ارسم الدالة على اللوحة أدناه، ثم اضغط 'تحويل ورسم'.")
+
+    canvas_result = st_canvas(
+        fill_color="white",
+        stroke_width=3,
+        stroke_color="black",
+        background_color="white",
+        width=600,
+        height=400,
+        drawing_mode="freedraw",
+        key="canvas"
+    )
+
+    if st.button("تحويل ورسم"):
+        if canvas_result.image_data is not None:
+            # الحصول على نقاط الرسم من الصورة
+            img = canvas_result.image_data[:,:,0]  # استخدام قناة واحدة (أبيض وأسود)
+            ys, xs = np.where(img < 128)  # النقاط الداكنة
+            if len(xs) > 5:
+                xs = xs - np.mean(xs)
+                xs = xs / np.max(np.abs(xs)) * 10  # تقريب نطاق x من -10 إلى 10
+                ys = -(ys - np.mean(ys))
+                ys = ys / np.max(np.abs(ys)) * 10  # تقريب نطاق y من -10 إلى 10
+
+                # تقريب الدالة باستخدام Spline
+                sorted_idx = np.argsort(xs)
+                xs_sorted = xs[sorted_idx]
+                ys_sorted = ys[sorted_idx]
+                spline = make_interp_spline(xs_sorted, ys_sorted, k=3)
+                xs_new = np.linspace(xs_sorted[0], xs_sorted[-1], 500)
+                ys_new = spline(xs_new)
+
+                # رسم تفاعلي
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(x=xs_new, y=ys_new, mode='lines', name='الدالة المرسومة'))
+                fig.update_layout(title="الدالة المرسومة من خط اليد", xaxis_title="x", yaxis_title="y",
+                                  template="plotly_white")
+                st.plotly_chart(fig, use_container_width=True)
+                st.success("✅ تم تحويل الرسم اليدوي إلى دالة وتحليلها بنجاح!")
+            else:
+                st.error("❌ لم يتم اكتشاف أي رسم. حاول الرسم بشكل أوضح.")
