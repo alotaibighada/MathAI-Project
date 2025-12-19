@@ -105,7 +105,7 @@ with tab3:
 
             # رسم المنحنى
             fig, ax = plt.subplots()
-            ax.plot(xs, ys, label="الدالة", color=color)
+            ax.plot(xs, ys, color=color)
             ax.axhline(0, color='black', linewidth=1)
             ax.axvline(0, color='black', linewidth=1)
             ax.grid(True)
@@ -118,15 +118,14 @@ with tab3:
             # نقاط التقاطع الحقيقية
             roots = solve(f, x)
             real_roots = [float(r) for r in roots if r.is_real]
-            ax.scatter(real_roots, [0]*len(real_roots), color="red", label="نقاط التقاطع")
+            ax.scatter(real_roots, [0]*len(real_roots), color="red")
 
             # النقاط الحرجة
             df = diff(f, x)
             crit_points = solve(df, x)
             real_crit = [float(p) for p in crit_points if p.is_real]
-            ax.scatter(real_crit, [float(f.subs(x, p)) for p in real_crit], color="green", label="نقاط حرجة")
+            ax.scatter(real_crit, [float(f.subs(x, p)) for p in real_crit], color="green")
 
-            ax.legend()
             st.pyplot(fig)
 
             # جدول قيم x و y
@@ -139,9 +138,9 @@ with tab3:
             st.markdown("""
             <div style='text-align: right; direction: rtl; line-height: 1.6; font-size: 14px;'>
             🔍 <b>شرح مبسّط:</b><br>
-            • المنحنى يوضّح كيف تتغير قيمة y عند تغيير x<br>
-            • نقاط التقاطع تمثل حلول الدالة<br>
-            • النقاط الحرجة تمثل أعلى وأدنى القيم للمنحنى<br>
+            • المنحنى يوضح كيف تتغير قيمة y عند تغيير x<br>
+            • النقاط الحمراء تمثل نقاط التقاطع مع محور x<br>
+            • النقاط الخضراء تمثل النقاط الحرجة (أعلى وأدنى القيم)<br>
             • جدول القيم يساعد على تصور العلاقة بين x و y
             </div>
             """, unsafe_allow_html=True)
@@ -154,7 +153,8 @@ with tab3:
             if understand == "👍 نعم، فهمت":
                 st.success("🎉 ممتاز! هذا يدل على فهمك لشكل الدالة والعلاقة بين x و y")
             elif understand == "❓ لا، أحتاج شرح":
-                st.info("💡 حاول مراجعة المنحنى ونقاط التقاطع والنقاط الحرجة مرة أخرى")
+                st.info("💡 حاول مراجعة المنحنى والنقاط مرة أخرى")
 
         except Exception as e:
             st.error(f"❌ خطأ في الدالة: {e}")
+
