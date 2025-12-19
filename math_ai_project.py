@@ -23,6 +23,7 @@ def convert_math_to_python(text):
     text = re.sub(r'\^(\d+)', r'**\1', text)
     # إضافة * بين الرقم والمتغير (مثال: 4x -> 4*x)
     text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
+    text = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', text)
     # إزالة الفراغات
     text = text.replace(' ', '')
     return text
@@ -100,7 +101,7 @@ with tab2:
             st.error(f"❌ صيغة المعادلة غير صحيحة: {e}")
 
 # ---------------------
-# Tab 3: رسم وتحليل الدوال
+# Tab 3: رسم وتحليل الدوال – نسخة محسنة
 # ---------------------
 with tab3:
     st.header("📊 رسم وتحليل الدوال")
@@ -117,14 +118,21 @@ with tab3:
         try:
             # تحويل الصياغة التقليدية إلى SymPy
             func_text_sympy = convert_math_to_python(func_text)
-            allowed_functions = {"sin": sin, "cos": cos, "exp": exp, "log": log}
+            allowed_functions = {"sin": sin, "cos": cos, "exp": exp, "log": log, "sqrt": lambda x: x**0.5}
             f = sympify(func_text_sympy, locals=allowed_functions)
 
             # قيم x و y
             xs = np.linspace(x_min, x_max, 500)
-            ys = np.array([float(f.subs(x, val)) for val in xs])
+            ys = []
+            for val in xs:
+                try:
+                    y_val = float(f.subs(x, val))
+                    ys.append(y_val)
+                except:
+                    ys.append(np.nan)  # تجاهل القيم غير الممكنة
+            ys = np.array(ys)
 
-            # نقاط التقاطع
+            # نقاط التقاطع (x-axis)
             roots = solve(f, x)
             real_roots = [float(r.evalf()) for r in roots if r.is_real]
 
@@ -140,6 +148,9 @@ with tab3:
             label_roots = get_display(arabic_reshaper.reshape("نقاط التقاطع"))
             label_crit = get_display(arabic_reshaper.reshape("النقاط الحرجة"))
 
+            # ضبط matplotlib لدعم العربية
+            plt.rcParams['axes.unicode_minus'] = False
+
             # رسم التمثيل البياني
             fig, ax = plt.subplots(figsize=(8,5))
             ax.plot(xs, ys, label=label_func, color=color)
@@ -151,17 +162,24 @@ with tab3:
             ax.set_title(title_text, fontsize=14, fontweight='bold')
 
             # نقاط التقاطع والنقاط الحرجة
-            ax.scatter(real_roots, [0]*len(real_roots), color='red', label=label_roots)
-            ax.scatter(real_crit, crit_vals, color='green', label=label_crit)
+            if real_roots:
+                ax.scatter(real_roots, [0]*len(real_roots), color='red', label=label_roots)
+            if real_crit:
+                ax.scatter(real_crit, crit_vals, color='green', label=label_crit)
 
             ax.set_xlim(x_min, x_max)
             ax.set_ylim(y_min, y_max)
             ax.legend(fontsize=10)
             st.pyplot(fig)
 
-            # جدول قيم x و y
+            # جدول قيم x و y (11 نقطة)
             table_x = np.linspace(x_min, x_max, 11)
-            table_y = [float(f.subs(x, val)) for val in table_x]
+            table_y = []
+            for val in table_x:
+                try:
+                    table_y.append(float(f.subs(x, val)))
+                except:
+                    table_y.append(np.nan)
             st.subheader(get_display(arabic_reshaper.reshape("📋 جدول قيم x و y")))
             st.table({"x": table_x, "y": table_y})
 
