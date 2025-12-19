@@ -2,8 +2,6 @@ import streamlit as st
 from sympy import symbols, Eq, solve, sympify, diff, sin, cos, exp, log
 import numpy as np
 import matplotlib.pyplot as plt
-import arabic_reshaper
-from bidi.algorithm import get_display
 
 # =====================
 # إعداد الصفحة
@@ -13,6 +11,19 @@ st.title("🧮 Math AI – مشروع علمي ذكي")
 
 x = symbols("x")
 mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
+
+# =====================
+# دالة لتحويل الصياغة الرياضية التقليدية إلى صياغة SymPy
+# =====================
+import re
+def convert_math_to_python(text):
+    # تحويل ^2, ^3, ... إلى **
+    text = re.sub(r'\^(\d+)', r'**\1', text)
+    # إضافة * بين الرقم والمتغير (مثال: 4x -> 4*x)
+    text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
+    # إزالة الفراغات
+    text = text.replace(' ', '')
+    return text
 
 # =====================
 # Tabs للفصل بين الوظائف
@@ -58,10 +69,11 @@ with tab1:
 # ---------------------
 with tab2:
     st.header("📐 حل المعادلات خطوة بخطوة")
-    eq_text = st.text_input("أدخل المعادلة (مثال: 2*x + 5 = 15)")
+    eq_text_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0)")
 
     if st.button("حل المعادلة"):
         try:
+            eq_text = convert_math_to_python(eq_text_input)
             if "=" in eq_text:
                 left, _, right = eq_text.partition("=")
                 eq = Eq(sympify(left), sympify(right))
@@ -72,7 +84,7 @@ with tab2:
             sol = solve(eq, x)
 
             if mode == "👩‍🎓 وضع تعليمي":
-                st.write("🔹 المعادلة الأصلية:", eq_text)
+                st.write("🔹 المعادلة الأصلية:", eq_text_input)
                 lhs_simplified = sympify(left) - sympify(right)
                 st.write("🔹 بعد النقل للحصول على 0:")
                 st.latex(Eq(lhs_simplified, 0))
@@ -90,19 +102,21 @@ with tab2:
 # ---------------------
 with tab3:
     st.header("📊 رسم وتحليل الدوال")
-    func_text_input = st.text_input("أدخل الدالة ( x**2 - 4*x + 3)")
-    
+    func_text_input = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)")
+    x_min, x_max = st.slider("اختر نطاق x", -100, 100, (-10, 10))
+    y_min, y_max = st.slider("اختر نطاق y", -100, 100, (-10, 10))
     color = st.color_picker("اختر لون المنحنى", "#1f77b4")
     example = st.button("✨ جرب مثال جاهز")
     draw_button = st.button("ارسم الدالة")
 
-    func_text = "x**2 - 4*x + 3" if example else func_text_input
+    func_text = "x^2 - 4x + 3" if example else func_text_input
 
     if draw_button:
         try:
-            # دعم الدوال الجاهزة
+            # تحويل الصياغة التقليدية إلى SymPy
+            func_text_sympy = convert_math_to_python(func_text)
             allowed_functions = {"sin": sin, "cos": cos, "exp": exp, "log": log}
-            f = sympify(func_text, locals=allowed_functions)
+            f = sympify(func_text_sympy, locals=allowed_functions)
 
             # قيم x و y
             xs = np.linspace(x_min, x_max, 500)
@@ -118,36 +132,35 @@ with tab3:
             real_crit = [float(p.evalf()) for p in crit_points if p.is_real]
             crit_vals = [float(f.subs(x, p)) for p in real_crit]
 
-            # إعداد النصوص العربية
-            title_text = get_display(arabic_reshaper.reshape(f"رسم الدالة: {func_text}"))
-            label_roots = get_display(arabic_reshaper.reshape("نقاط التقاطع"))
-            label_crit = get_display(arabic_reshaper.reshape("النقاط الحرجة"))
-
             # رسم التمثيل البياني
             fig, ax = plt.subplots(figsize=(8,5))
-            ax.plot(xs, ys, label=get_display(arabic_reshaper.reshape("الدالة")), color=color)
+            ax.plot(xs, ys, label="الدالة", color=color)
             ax.axhline(0, color='black', linewidth=1)
             ax.axvline(0, color='black', linewidth=1)
             ax.grid(True, linestyle='--', alpha=0.7)
-            ax.set_xlabel(get_display(arabic_reshaper.reshape('x')), fontsize=12)
-            ax.set_ylabel(get_display(arabic_reshaper.reshape('y')), fontsize=12)
-            ax.set_title(title_text, fontsize=14, fontweight='bold')
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_title(f"رسم الدالة: {func_text}", fontsize=14, fontweight='bold')
 
             # نقاط التقاطع والنقاط الحرجة
-            ax.scatter(real_roots, [0]*len(real_roots), color='red', label=label_roots)
-            ax.scatter(real_crit, crit_vals, color='green', label=label_crit)
+            ax.scatter(real_roots, [0]*len(real_roots), color='red', label="نقاط التقاطع")
+            ax.scatter(real_crit, crit_vals, color='green', label="النقاط الحرجة")
 
             ax.set_xlim(x_min, x_max)
             ax.set_ylim(y_min, y_max)
             ax.legend(fontsize=10)
             st.pyplot(fig)
 
-           
+            # جدول قيم x و y
+            table_x = np.linspace(x_min, x_max, 11)
+            table_y = [float(f.subs(x, val)) for val in table_x]
+            st.subheader("📋 جدول قيم x و y")
+            st.table({"x": table_x, "y": table_y})
 
-            # عرض نقاط التقاطع والنقاط الحرجة في جدول
-            st.subheader(get_display(arabic_reshaper.reshape("🔴 نقاط التقاطع")))
+            # عرض نقاط التقاطع والنقاط الحرجة
+            st.subheader("🔴 نقاط التقاطع")
             st.write(real_roots)
-            st.subheader(get_display(arabic_reshaper.reshape("🟢 النقاط الحرجة")))
+            st.subheader("🟢 النقاط الحرجة")
             st.write(list(zip(real_crit, crit_vals)))
 
         except Exception as e:
