@@ -143,11 +143,7 @@ with tab3:
             ax.legend(fontsize=10)
             st.pyplot(fig)
 
-            # جدول قيم x و y
-            table_x = np.linspace(x_min, x_max, 11)
-            table_y = [float(f.subs(x, val)) for val in table_x]
-            st.subheader(get_display(arabic_reshaper.reshape("📋 جدول قيم x و y")))
-            st.table({"x": table_x, "y": table_y})
+           
 
             # عرض نقاط التقاطع والنقاط الحرجة في جدول
             st.subheader(get_display(arabic_reshaper.reshape("🔴 نقاط التقاطع")))
