@@ -1,7 +1,6 @@
 streamlit
 sympy
 numpy
-plotly
-scipy
-opencv-python
-streamlit-drawable-canvas
+matplotlib
+arabic-reshaper
+python-bidi
