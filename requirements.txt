@@ -1,4 +1,5 @@
 streamlit
 sympy
-matplotlib
 numpy
+plotly
+matplotlib
