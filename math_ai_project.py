@@ -1,20 +1,83 @@
+import streamlit as st
+from sympy import symbols, Eq, solve, sympify, degree, diff
+import matplotlib.pyplot as plt
+import numpy as np
+
+# =====================
+# إعداد الصفحة
+# =====================
+st.set_page_config(page_title="Math AI Project", layout="wide")
+st.title("🧮 Math AI – مشروع علمي ذكي")
+
+x = symbols("x")
+
+mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
+
+# =====================
+# العمليات الحسابية
+# =====================
+st.header("🔢 العمليات الحسابية")
+a = st.number_input("الرقم الأول", value=0)
+b = st.number_input("الرقم الثاني", value=0)
+op = st.selectbox("العملية", ["جمع", "طرح", "ضرب", "قسمة"])
+
+if st.button("احسب"):
+    r = None
+    if op == "جمع":
+        r = a + b
+    elif op == "طرح":
+        r = a - b
+    elif op == "ضرب":
+        r = a * b
+    elif op == "قسمة":
+        if b == 0:
+            st.error("❌ لا يمكن القسمة على صفر")
+        else:
+            r = a / b
+    if r is not None:
+        st.success(f"✅ النتيجة = {r}")
+        if mode == "👩‍🎓 وضع تعليمي":
+            st.info("💡 تم تطبيق العملية الحسابية على الرقمين مباشرة")
+
+# =====================
+# حل المعادلات خطوة بخطوة
+# =====================
+st.header("📐 حل المعادلات خطوة بخطوة")
+eq_text = st.text_input("أدخل المعادلة (مثال: 2*x + 5 = 15)")
+
+if st.button("حل المعادلة"):
+    try:
+        left, right = eq_text.split("=")
+        eq = Eq(sympify(left), sympify(right))
+        sol = solve(eq, x)
+
+        if mode == "👩‍🎓 وضع تعليمي":
+            st.write("🔹 الخطوة 1: المعادلة الأصلية")
+            st.write(eq_text)
+            
+            lhs_simplified = sympify(left) - sympify(right)
+            st.write(f"🔹 الخطوة 2: نقل الحدود للحصول على 0 = ...")
+            st.write(f"0 = {lhs_simplified}")
+            
+        st.success(f"✅ الحل النهائي: x = {sol}")
+    except:
+        st.error("❌ صيغة المعادلة غير صحيحة")
+
 # =====================
 # رسم وتحليل الدوال مع شرح عربي مرتب
 # =====================
 st.header("📊 رسم وتحليل الدوال")
 
-col1, col2 = st.columns(2)
-
-with col1:
-    example = st.button("✨ جرب مثال جاهز")
-    func_text_input = st.text_input("أدخل الدالة (مثال: x**2 - 4*x + 3)")
-    func_text = "x**2 - 4*x + 3" if example else func_text_input
-
-with col2:
-    color = st.color_picker("اختر لون المنحنى", "#1f77b4")
-
+# مدخلات المستخدم
+func_text_input = st.text_input("أدخل الدالة (مثال: x**2 - 4*x + 3)")
+color = st.color_picker("اختر لون المنحنى", "#1f77b4")
+example = st.button("✨ جرب مثال جاهز")
 draw_button = st.button("ارسم الدالة")
 
+# تعيين الدالة التجريبية إذا تم الضغط على زر المثال
+func_text = "x**2 - 4*x + 3" if example else func_text_input
+
+# التنفيذ عند الضغط على زر الرسم
 if draw_button:
     try:
         f = sympify(func_text)
