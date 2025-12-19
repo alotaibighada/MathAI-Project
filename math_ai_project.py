@@ -1,7 +1,7 @@
 import streamlit as st
 from sympy import symbols, Eq, solve, sympify, diff, sin, cos, exp, log, latex
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.graph_objs as go
 import arabic_reshaper
 from bidi.algorithm import get_display
 import re
@@ -10,26 +10,23 @@ import re
 # إعداد الصفحة
 # =====================
 st.set_page_config(page_title="Math AI Project", layout="wide")
-st.title("🧮 Math AI – مشروع علمي ذكي")
+st.title("🧮 Math AI – مشروع ذكي ومحسن")
 
 x = symbols("x")
 mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
 
 # =====================
-# دالة لتحويل الصياغة الرياضية التقليدية إلى صياغة SymPy
+# دالة تحويل الصياغة التقليدية إلى SymPy
 # =====================
 def convert_math_to_python(text):
-    # تحويل ^2, ^3, ... إلى **
-    text = re.sub(r'\^(\d+)', r'**\1', text)
-    # إضافة * بين الرقم والمتغير (مثال: 4x -> 4*x)
-    text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
-    text = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', text)
-    # إزالة الفراغات
     text = text.replace(' ', '')
+    text = re.sub(r'\^(\d+)', r'**\1', text)
+    text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
+    text = re.sub(r'([a-zA-Z])(\d+)', r'\1*\2', text)
     return text
 
 # =====================
-# Tabs للفصل بين الوظائف
+# Tabs
 # =====================
 tab1, tab2, tab3 = st.tabs([
     "🔢 العمليات الحسابية",
@@ -101,10 +98,10 @@ with tab2:
             st.error(f"❌ صيغة المعادلة غير صحيحة: {e}")
 
 # ---------------------
-# Tab 3: رسم وتحليل الدوال – نسخة محسنة
+# Tab 3: رسم وتحليل الدوال باستخدام Plotly
 # ---------------------
 with tab3:
-    st.header("📊 رسم وتحليل الدوال")
+    st.header("📊 رسم وتحليل الدوال تفاعلي")
     func_text_input = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)")
     x_min, x_max = st.slider("اختر نطاق x", -100, 100, (-10, 10))
     y_min, y_max = st.slider("اختر نطاق y", -100, 100, (-10, 10))
@@ -116,23 +113,19 @@ with tab3:
 
     if draw_button:
         try:
-            # تحويل الصياغة التقليدية إلى SymPy
             func_text_sympy = convert_math_to_python(func_text)
             allowed_functions = {"sin": sin, "cos": cos, "exp": exp, "log": log, "sqrt": lambda x: x**0.5}
             f = sympify(func_text_sympy, locals=allowed_functions)
 
-            # قيم x و y
             xs = np.linspace(x_min, x_max, 500)
             ys = []
             for val in xs:
                 try:
-                    y_val = float(f.subs(x, val))
-                    ys.append(y_val)
+                    ys.append(float(f.subs(x, val)))
                 except:
-                    ys.append(np.nan)  # تجاهل القيم غير الممكنة
-            ys = np.array(ys)
+                    ys.append(np.nan)
 
-            # نقاط التقاطع (x-axis)
+            # نقاط التقاطع
             roots = solve(f, x)
             real_roots = [float(r.evalf()) for r in roots if r.is_real]
 
@@ -148,31 +141,19 @@ with tab3:
             label_roots = get_display(arabic_reshaper.reshape("نقاط التقاطع"))
             label_crit = get_display(arabic_reshaper.reshape("النقاط الحرجة"))
 
-            # ضبط matplotlib لدعم العربية
-            plt.rcParams['axes.unicode_minus'] = False
-
-            # رسم التمثيل البياني
-            fig, ax = plt.subplots(figsize=(8,5))
-            ax.plot(xs, ys, label=label_func, color=color)
-            ax.axhline(0, color='black', linewidth=1)
-            ax.axvline(0, color='black', linewidth=1)
-            ax.grid(True, linestyle='--', alpha=0.7)
-            ax.set_xlabel(get_display(arabic_reshaper.reshape('x')), fontsize=12)
-            ax.set_ylabel(get_display(arabic_reshaper.reshape('y')), fontsize=12)
-            ax.set_title(title_text, fontsize=14, fontweight='bold')
-
-            # نقاط التقاطع والنقاط الحرجة
+            # رسم Plotly تفاعلي
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines', name=label_func, line=dict(color=color)))
             if real_roots:
-                ax.scatter(real_roots, [0]*len(real_roots), color='red', label=label_roots)
+                fig.add_trace(go.Scatter(x=real_roots, y=[0]*len(real_roots), mode='markers', name=label_roots, marker=dict(color='red', size=10)))
             if real_crit:
-                ax.scatter(real_crit, crit_vals, color='green', label=label_crit)
+                fig.add_trace(go.Scatter(x=real_crit, y=crit_vals, mode='markers', name=label_crit, marker=dict(color='green', size=10)))
+            fig.update_layout(title=title_text, xaxis_title=get_display(arabic_reshaper.reshape('x')),
+                              yaxis_title=get_display(arabic_reshaper.reshape('y')),
+                              width=800, height=500)
+            st.plotly_chart(fig, use_container_width=True)
 
-            ax.set_xlim(x_min, x_max)
-            ax.set_ylim(y_min, y_max)
-            ax.legend(fontsize=10)
-            st.pyplot(fig)
-
-            # جدول قيم x و y (11 نقطة)
+            # جدول قيم x و y
             table_x = np.linspace(x_min, x_max, 11)
             table_y = []
             for val in table_x:
