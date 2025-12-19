@@ -38,6 +38,12 @@ def generate_explanation(eq, solutions):
     return explanations
 
 # =====================
+# دالة لإعادة تشكيل النصوص العربية
+# =====================
+def arabic_text(text):
+    return get_display(arabic_reshaper.reshape(text))
+
+# =====================
 # Tabs
 # =====================
 tab1, tab2, tab3 = st.tabs([
@@ -50,12 +56,12 @@ tab1, tab2, tab3 = st.tabs([
 # Tab 1: العمليات الحسابية
 # ---------------------
 with tab1:
-    st.header("🔢 العمليات الحسابية")
-    a = st.number_input("الرقم الأول", value=0, key="calc_a")
-    b = st.number_input("الرقم الثاني", value=0, key="calc_b")
-    op = st.selectbox("العملية", ["جمع", "طرح", "ضرب", "قسمة"], key="calc_op")
+    st.header(arabic_text("🔢 العمليات الحسابية"))
+    a = st.number_input(arabic_text("الرقم الأول"), value=0, key="calc_a")
+    b = st.number_input(arabic_text("الرقم الثاني"), value=0, key="calc_b")
+    op = st.selectbox(arabic_text("العملية"), ["جمع", "طرح", "ضرب", "قسمة"], key="calc_op")
 
-    if st.button("احسب", key="calc_button"):
+    if st.button(arabic_text("احسب"), key="calc_button"):
         try:
             if op == "جمع":
                 r = a + b
@@ -65,64 +71,64 @@ with tab1:
                 r = a * b
             elif op == "قسمة":
                 if b == 0:
-                    st.error("❌ لا يمكن القسمة على صفر")
+                    st.error(arabic_text("❌ لا يمكن القسمة على صفر"))
                     r = None
                 else:
                     r = a / b
             if r is not None:
-                st.success(f"✅ النتيجة = {r}")
+                st.success(arabic_text(f"✅ النتيجة = {r}"))
                 if mode == "👩‍🎓 وضع تعليمي":
-                    st.info("💡 تم تطبيق العملية الحسابية على الرقمين مباشرة")
+                    st.info(arabic_text("💡 تم تطبيق العملية الحسابية على الرقمين مباشرة"))
         except Exception as e:
-            st.error(f"❌ خطأ أثناء الحساب: {e}")
+            st.error(arabic_text(f"❌ خطأ أثناء الحساب: {e}"))
 
 # ---------------------
 # Tab 2: حل المعادلات مع شرح AI
 # ---------------------
 with tab2:
-    st.header("📐 حل المعادلات خطوة بخطوة")
-    eq_text_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0)", key="eq_input")
-    example_eq = st.button("✨ جرب مثال جاهز", key="example_eq")
+    st.header(arabic_text("📐 حل المعادلات خطوة بخطوة"))
+    eq_text_input = st.text_input(arabic_text("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0)"), key="eq_input")
+    example_eq = st.button(arabic_text("✨ جرب مثال جاهز"), key="example_eq")
 
     if example_eq:
         eq_text_input = "x^2 - 4*x + 3 = 0"
 
-    if st.button("حل المعادلة", key="solve_eq"):
+    if st.button(arabic_text("حل المعادلة"), key="solve_eq"):
         try:
             eq_text = convert_math_to_python(eq_text_input)
             if "=" not in eq_text:
-                st.error("❌ يجب أن تحتوي المعادلة على '='")
+                st.error(arabic_text("❌ يجب أن تحتوي المعادلة على '='"))
                 st.stop()
             left, _, right = eq_text.partition("=")
             eq = Eq(sympify(left), sympify(right))
             sol = solve(eq, x)
 
             if mode == "👩‍🎓 وضع تعليمي":
-                st.write("🔹 المعادلة الأصلية:", eq_text_input)
+                st.write(arabic_text("🔹 المعادلة الأصلية:"), eq_text_input)
                 lhs_simplified = sympify(left) - sympify(right)
-                st.write("🔹 بعد النقل للحصول على 0:")
+                st.write(arabic_text("🔹 بعد النقل للحصول على 0:"))
                 st.latex(Eq(lhs_simplified, 0))
-                st.write("🔹 شرح AI خطوة بخطوة:")
+                st.write(arabic_text("🔹 شرح AI خطوة بخطوة:"))
                 for line in generate_explanation(eq, sol):
-                    st.markdown(f"- {line}")
+                    st.markdown(arabic_text(f"- {line}"))
 
-            st.success(f"✅ الحل النهائي: x = {[latex(s) for s in sol]}")
+            st.success(arabic_text(f"✅ الحل النهائي: x = {[latex(s) for s in sol]}"))
 
         except Exception as e:
-            st.error(f"❌ صيغة المعادلة غير صحيحة: {e}")
+            st.error(arabic_text(f"❌ صيغة المعادلة غير صحيحة: {e}"))
 
 # ---------------------
 # Tab 3: رسم وتحليل الدوال مع AI
 # ---------------------
 with tab3:
-    st.header("📊 رسم وتحليل الدوال تفاعلي")
-    func_text_input = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)", key="func_input")
-    x_min, x_max = st.slider("اختر نطاق x", -100, 100, (-10, 10), key="slider_x")
-    y_min, y_max = st.slider("اختر نطاق y", -100, 100, (-10, 10), key="slider_y")
-    color = st.color_picker("اختر لون المنحنى", "#1f77b4", key="color_picker")
+    st.header(arabic_text("📊 رسم وتحليل الدوال تفاعلي"))
+    func_text_input = st.text_input(arabic_text("أدخل الدالة (مثال: x^2 - 4x + 3)"), key="func_input")
+    x_min, x_max = st.slider(arabic_text("اختر نطاق x"), -100, 100, (-10, 10), key="slider_x")
+    y_min, y_max = st.slider(arabic_text("اختر نطاق y"), -100, 100, (-10, 10), key="slider_y")
+    color = st.color_picker(arabic_text("اختر لون المنحنى"), "#1f77b4", key="color_picker")
 
-    example_func = st.button("✨ جرب مثال جاهز", key="example_func")
-    draw_button = st.button("ارسم الدالة", key="draw_button")
+    example_func = st.button(arabic_text("✨ جرب مثال جاهز"), key="example_func")
+    draw_button = st.button(arabic_text("ارسم الدالة"), key="draw_button")
 
     if example_func:
         func_text_input = "x^2 - 4*x + 3"
@@ -159,14 +165,13 @@ with tab3:
             real_infl = [float(p.evalf()) for p in inflect_points if p.is_real]
             infl_vals = [float(f.subs(x, p)) for p in real_infl]
 
-            # إعادة تشكيل النص العربي
-            title_text = get_display(arabic_reshaper.reshape(f"رسم الدالة: {func_text}"))
-            label_func = get_display(arabic_reshaper.reshape("الدالة"))
-            label_roots = get_display(arabic_reshaper.reshape("نقاط التقاطع"))
-            label_crit = get_display(arabic_reshaper.reshape("النقاط الحرجة"))
-            label_infl = get_display(arabic_reshaper.reshape("نقاط الانعطاف"))
+            # Plotly تفاعلي مع النصوص العربية صحيحة
+            title_text = arabic_text(f"رسم الدالة: {func_text}")
+            label_func = arabic_text("الدالة")
+            label_roots = arabic_text("نقاط التقاطع")
+            label_crit = arabic_text("النقاط الحرجة")
+            label_infl = arabic_text("نقاط الانعطاف")
 
-            # Plotly تفاعلي
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines', name=label_func, line=dict(color=color)))
             if real_roots:
@@ -175,8 +180,15 @@ with tab3:
                 fig.add_trace(go.Scatter(x=real_crit, y=crit_vals, mode='markers', name=label_crit, marker=dict(color='green', size=10)))
             if real_infl:
                 fig.add_trace(go.Scatter(x=real_infl, y=infl_vals, mode='markers', name=label_infl, marker=dict(color='orange', size=10)))
-            fig.update_layout(title=title_text, xaxis_title=get_display(arabic_reshaper.reshape('x')),
-                              yaxis_title=get_display(arabic_reshaper.reshape('y')), width=800, height=500)
+
+            fig.update_layout(
+                title=title_text,
+                xaxis_title=arabic_text('x'),
+                yaxis_title=arabic_text('y'),
+                font=dict(family="Arial", size=12),
+                width=800,
+                height=500
+            )
             st.plotly_chart(fig, use_container_width=True)
 
             # جدول قيم x و y
@@ -187,10 +199,10 @@ with tab3:
                     table_y.append(float(f.subs(x, val)))
                 except:
                     table_y.append(np.nan)
-            st.subheader(get_display(arabic_reshaper.reshape("📋 جدول قيم x و y")))
+            st.subheader(arabic_text("📋 جدول قيم x و y"))
             st.table({"x": table_x, "y": table_y})
 
-            # عرض نقاط التقاطع والنقاط الحرجة والانفلاق
+            # عرض نقاط التقاطع والنقاط الحرجة والانعطاف
             st.subheader(label_roots)
             st.write(real_roots)
             st.subheader(label_crit)
@@ -199,4 +211,4 @@ with tab3:
             st.write(list(zip(real_infl, infl_vals)))
 
         except Exception as e:
-            st.error(f"❌ خطأ في الدالة: {e}")
+            st.error(arabic_text(f"❌ خطأ في الدالة: {e}"))
