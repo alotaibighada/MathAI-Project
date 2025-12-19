@@ -108,7 +108,7 @@ with tab3:
     func_text_input = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)")
     
     color = st.color_picker("اختر لون المنحنى", "#1f77b4")
-    example = st.button("✨ جرب مثال جاهز")
+    
     draw_button = st.button("ارسم الدالة")
 
     func_text = "x^2 - 4x + 3" if example else func_text_input
