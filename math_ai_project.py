@@ -104,12 +104,12 @@ with tab3:
 
             # نقاط التقاطع الحقيقية
             roots = solve(f, x)
-            real_roots = [r.evalf() for r in roots if r.is_real]
+            real_roots = [float(r.evalf()) for r in roots if r.is_real]
 
             # النقاط الحرجة
             df = diff(f, x)
             crit_points = solve(df, x)
-            real_crit = [p.evalf() for p in crit_points if p.is_real]
+            real_crit = [float(p.evalf()) for p in crit_points if p.is_real]
             crit_vals = [float(f.subs(x, p)) for p in real_crit]
 
             # رسم تفاعلي
