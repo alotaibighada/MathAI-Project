@@ -13,7 +13,7 @@ st.set_page_config(page_title="Math AI Project", layout="wide")
 st.title("🧮 Math AI – مساعد رياضي ذكي")
 
 x = symbols("x")
-mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
+mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"], key="usage_mode")
 
 # =====================
 # تحويل صياغة المستخدم إلى SymPy
@@ -51,11 +51,11 @@ tab1, tab2, tab3 = st.tabs([
 # ---------------------
 with tab1:
     st.header("🔢 العمليات الحسابية")
-    a = st.number_input("الرقم الأول", value=0)
-    b = st.number_input("الرقم الثاني", value=0)
-    op = st.selectbox("العملية", ["جمع", "طرح", "ضرب", "قسمة"])
+    a = st.number_input("الرقم الأول", value=0, key="calc_a")
+    b = st.number_input("الرقم الثاني", value=0, key="calc_b")
+    op = st.selectbox("العملية", ["جمع", "طرح", "ضرب", "قسمة"], key="calc_op")
 
-    if st.button("احسب"):
+    if st.button("احسب", key="calc_button"):
         try:
             if op == "جمع":
                 r = a + b
@@ -81,13 +81,13 @@ with tab1:
 # ---------------------
 with tab2:
     st.header("📐 حل المعادلات خطوة بخطوة")
-    eq_text_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0)")
-    example_eq = st.button("✨ جرب مثال جاهز")
+    eq_text_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0)", key="eq_input")
+    example_eq = st.button("✨ جرب مثال جاهز", key="example_eq")
 
     if example_eq:
         eq_text_input = "x^2 - 4*x + 3 = 0"
 
-    if st.button("حل المعادلة"):
+    if st.button("حل المعادلة", key="solve_eq"):
         try:
             eq_text = convert_math_to_python(eq_text_input)
             if "=" not in eq_text:
@@ -116,12 +116,13 @@ with tab2:
 # ---------------------
 with tab3:
     st.header("📊 رسم وتحليل الدوال تفاعلي")
-    func_text_input = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)")
-    x_min, x_max = st.slider("اختر نطاق x", -100, 100, (-10, 10))
-    y_min, y_max = st.slider("اختر نطاق y", -100, 100, (-10, 10))
-    color = st.color_picker("اختر لون المنحنى", "#1f77b4")
-    example_func = st.button("✨ جرب مثال جاهز")
-    draw_button = st.button("ارسم الدالة")
+    func_text_input = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)", key="func_input")
+    x_min, x_max = st.slider("اختر نطاق x", -100, 100, (-10, 10), key="slider_x")
+    y_min, y_max = st.slider("اختر نطاق y", -100, 100, (-10, 10), key="slider_y")
+    color = st.color_picker("اختر لون المنحنى", "#1f77b4", key="color_picker")
+
+    example_func = st.button("✨ جرب مثال جاهز", key="example_func")
+    draw_button = st.button("ارسم الدالة", key="draw_button")
 
     if example_func:
         func_text_input = "x^2 - 4*x + 3"
