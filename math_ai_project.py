@@ -90,9 +90,8 @@ with tab2:
 # ---------------------
 with tab3:
     st.header("📊 رسم وتحليل الدوال")
-    func_text_input = st.text_input("أدخل الدالة (مثال: x**2 - 4*x + 3)")
-    x_min, x_max = st.slider("اختر نطاق x", -100, 100, (-10, 10))
-    y_min, y_max = st.slider("اختر نطاق y", -100, 100, (-10, 10))
+    func_text_input = st.text_input("أدخل الدالة ( x**2 - 4*x + 3)")
+    
     color = st.color_picker("اختر لون المنحنى", "#1f77b4")
     example = st.button("✨ جرب مثال جاهز")
     draw_button = st.button("ارسم الدالة")
