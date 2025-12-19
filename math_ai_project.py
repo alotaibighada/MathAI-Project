@@ -1,5 +1,5 @@
 import streamlit as st
-from sympy import symbols, Eq, solve, sympify, diff, sin, cos, exp, log, latex
+from sympy import symbols, Eq, solve, sympify, diff, sin, cos, exp, log, integrate, latex
 import numpy as np
 import plotly.graph_objs as go
 import arabic_reshaper
@@ -10,13 +10,13 @@ import re
 # إعداد الصفحة
 # =====================
 st.set_page_config(page_title="Math AI Project", layout="wide")
-st.title("🧮 Math AI – مشروع ذكي ومحسن")
+st.title("🧮 Math AI – مساعد رياضي ذكي")
 
 x = symbols("x")
 mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
 
 # =====================
-# دالة تحويل الصياغة التقليدية إلى SymPy
+# تحويل صياغة المستخدم إلى SymPy
 # =====================
 def convert_math_to_python(text):
     text = text.replace(' ', '')
@@ -24,6 +24,18 @@ def convert_math_to_python(text):
     text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
     text = re.sub(r'([a-zA-Z])(\d+)', r'\1*\2', text)
     return text
+
+# =====================
+# توليد شرح ذكي بالعربي (AI مبسط)
+# =====================
+def generate_explanation(eq, solutions):
+    explanations = []
+    lhs = eq.lhs
+    rhs = eq.rhs
+    explanations.append(f"نقلنا جميع الحدود للحصول على صفر: {latex(lhs - rhs)} = 0")
+    for i, sol in enumerate(solutions, start=1):
+        explanations.append(f"الحل رقم {i}: x = {latex(sol)}")
+    return explanations
 
 # =====================
 # Tabs
@@ -65,22 +77,24 @@ with tab1:
             st.error(f"❌ خطأ أثناء الحساب: {e}")
 
 # ---------------------
-# Tab 2: حل المعادلات
+# Tab 2: حل المعادلات مع شرح AI
 # ---------------------
 with tab2:
     st.header("📐 حل المعادلات خطوة بخطوة")
     eq_text_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0)")
+    example_eq = st.button("✨ جرب مثال جاهز")
+
+    if example_eq:
+        eq_text_input = "x^2 - 4*x + 3 = 0"
 
     if st.button("حل المعادلة"):
         try:
             eq_text = convert_math_to_python(eq_text_input)
-            if "=" in eq_text:
-                left, _, right = eq_text.partition("=")
-                eq = Eq(sympify(left), sympify(right))
-            else:
+            if "=" not in eq_text:
                 st.error("❌ يجب أن تحتوي المعادلة على '='")
                 st.stop()
-            
+            left, _, right = eq_text.partition("=")
+            eq = Eq(sympify(left), sympify(right))
             sol = solve(eq, x)
 
             if mode == "👩‍🎓 وضع تعليمي":
@@ -88,9 +102,9 @@ with tab2:
                 lhs_simplified = sympify(left) - sympify(right)
                 st.write("🔹 بعد النقل للحصول على 0:")
                 st.latex(Eq(lhs_simplified, 0))
-                st.write("🔹 الحل خطوة بخطوة:")
-                for s in sol:
-                    st.latex(f"x = {latex(s)}")
+                st.write("🔹 شرح AI خطوة بخطوة:")
+                for line in generate_explanation(eq, sol):
+                    st.markdown(f"- {line}")
 
             st.success(f"✅ الحل النهائي: x = {[latex(s) for s in sol]}")
 
@@ -98,7 +112,7 @@ with tab2:
             st.error(f"❌ صيغة المعادلة غير صحيحة: {e}")
 
 # ---------------------
-# Tab 3: رسم وتحليل الدوال باستخدام Plotly
+# Tab 3: رسم وتحليل الدوال مع AI
 # ---------------------
 with tab3:
     st.header("📊 رسم وتحليل الدوال تفاعلي")
@@ -106,10 +120,13 @@ with tab3:
     x_min, x_max = st.slider("اختر نطاق x", -100, 100, (-10, 10))
     y_min, y_max = st.slider("اختر نطاق y", -100, 100, (-10, 10))
     color = st.color_picker("اختر لون المنحنى", "#1f77b4")
-    example = st.button("✨ جرب مثال جاهز")
+    example_func = st.button("✨ جرب مثال جاهز")
     draw_button = st.button("ارسم الدالة")
 
-    func_text = "x^2 - 4x + 3" if example else func_text_input
+    if example_func:
+        func_text_input = "x^2 - 4*x + 3"
+
+    func_text = func_text_input
 
     if draw_button:
         try:
@@ -135,22 +152,30 @@ with tab3:
             real_crit = [float(p.evalf()) for p in crit_points if p.is_real]
             crit_vals = [float(f.subs(x, p)) for p in real_crit]
 
+            # المشتقة الثانية ونقاط الانعطاف
+            d2f = diff(f, x, 2)
+            inflect_points = solve(d2f, x)
+            real_infl = [float(p.evalf()) for p in inflect_points if p.is_real]
+            infl_vals = [float(f.subs(x, p)) for p in real_infl]
+
             # إعادة تشكيل النص العربي
             title_text = get_display(arabic_reshaper.reshape(f"رسم الدالة: {func_text}"))
             label_func = get_display(arabic_reshaper.reshape("الدالة"))
             label_roots = get_display(arabic_reshaper.reshape("نقاط التقاطع"))
             label_crit = get_display(arabic_reshaper.reshape("النقاط الحرجة"))
+            label_infl = get_display(arabic_reshaper.reshape("نقاط الانعطاف"))
 
-            # رسم Plotly تفاعلي
+            # Plotly تفاعلي
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines', name=label_func, line=dict(color=color)))
             if real_roots:
                 fig.add_trace(go.Scatter(x=real_roots, y=[0]*len(real_roots), mode='markers', name=label_roots, marker=dict(color='red', size=10)))
             if real_crit:
                 fig.add_trace(go.Scatter(x=real_crit, y=crit_vals, mode='markers', name=label_crit, marker=dict(color='green', size=10)))
+            if real_infl:
+                fig.add_trace(go.Scatter(x=real_infl, y=infl_vals, mode='markers', name=label_infl, marker=dict(color='orange', size=10)))
             fig.update_layout(title=title_text, xaxis_title=get_display(arabic_reshaper.reshape('x')),
-                              yaxis_title=get_display(arabic_reshaper.reshape('y')),
-                              width=800, height=500)
+                              yaxis_title=get_display(arabic_reshaper.reshape('y')), width=800, height=500)
             st.plotly_chart(fig, use_container_width=True)
 
             # جدول قيم x و y
@@ -164,11 +189,13 @@ with tab3:
             st.subheader(get_display(arabic_reshaper.reshape("📋 جدول قيم x و y")))
             st.table({"x": table_x, "y": table_y})
 
-            # عرض نقاط التقاطع والنقاط الحرجة
+            # عرض نقاط التقاطع والنقاط الحرجة والانفلاق
             st.subheader(label_roots)
             st.write(real_roots)
             st.subheader(label_crit)
             st.write(list(zip(real_crit, crit_vals)))
+            st.subheader(label_infl)
+            st.write(list(zip(real_infl, infl_vals)))
 
         except Exception as e:
             st.error(f"❌ خطأ في الدالة: {e}")
