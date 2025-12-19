@@ -2,4 +2,6 @@ streamlit
 sympy
 numpy
 plotly
-matplotlib
+scipy
+opencv-python
+streamlit-drawable-canvas
