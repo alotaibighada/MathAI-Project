@@ -106,8 +106,7 @@ with tab2:
 with tab3:
     st.header("📊 رسم وتحليل الدوال")
     func_text_input = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)")
-    x_min, x_max = st.slider("اختر نطاق x", -100, 100, (-10, 10))
-    y_min, y_max = st.slider("اختر نطاق y", -100, 100, (-10, 10))
+    
     color = st.color_picker("اختر لون المنحنى", "#1f77b4")
     example = st.button("✨ جرب مثال جاهز")
     draw_button = st.button("ارسم الدالة")
@@ -172,17 +171,7 @@ with tab3:
             ax.legend(fontsize=10)
             st.pyplot(fig)
 
-            # جدول قيم x و y (11 نقطة)
-            table_x = np.linspace(x_min, x_max, 11)
-            table_y = []
-            for val in table_x:
-                try:
-                    table_y.append(float(f.subs(x, val)))
-                except:
-                    table_y.append(np.nan)
-            st.subheader(get_display(arabic_reshaper.reshape("📋 جدول قيم x و y")))
-            st.table({"x": table_x, "y": table_y})
-
+            
             # عرض نقاط التقاطع والنقاط الحرجة
             st.subheader(label_roots)
             st.write(real_roots)
