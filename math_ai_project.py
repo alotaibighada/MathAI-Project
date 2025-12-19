@@ -1,3 +1,105 @@
+import streamlit as st
+from sympy import symbols, Eq, solve, sympify, diff, sin, cos, exp, log, latex
+import numpy as np
+import matplotlib.pyplot as plt
+import arabic_reshaper
+from bidi.algorithm import get_display
+import re
+
+# =====================
+# إعداد الصفحة
+# =====================
+st.set_page_config(page_title="Math AI Project", layout="wide")
+st.title("🧮 Math AI – مشروع علمي ذكي")
+
+x = symbols("x")
+mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
+
+# =====================
+# دالة لتحويل الصياغة الرياضية التقليدية إلى صياغة SymPy
+# =====================
+def convert_math_to_python(text):
+    # تحويل ^2, ^3, ... إلى **
+    text = re.sub(r'\^(\d+)', r'**\1', text)
+    # إضافة * بين الرقم والمتغير (مثال: 4x -> 4*x)
+    text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
+    text = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', text)
+    # إزالة الفراغات
+    text = text.replace(' ', '')
+    return text
+
+# =====================
+# Tabs للفصل بين الوظائف
+# =====================
+tab1, tab2, tab3 = st.tabs([
+    "🔢 العمليات الحسابية",
+    "📐 حل المعادلات",
+    "📊 رسم وتحليل الدوال"
+])
+
+# ---------------------
+# Tab 1: العمليات الحسابية
+# ---------------------
+with tab1:
+    st.header("🔢 العمليات الحسابية")
+    a = st.number_input("الرقم الأول", value=0)
+    b = st.number_input("الرقم الثاني", value=0)
+    op = st.selectbox("العملية", ["جمع", "طرح", "ضرب", "قسمة"])
+
+    if st.button("احسب"):
+        try:
+            if op == "جمع":
+                r = a + b
+            elif op == "طرح":
+                r = a - b
+            elif op == "ضرب":
+                r = a * b
+            elif op == "قسمة":
+                if b == 0:
+                    st.error("❌ لا يمكن القسمة على صفر")
+                    r = None
+                else:
+                    r = a / b
+            if r is not None:
+                st.success(f"✅ النتيجة = {r}")
+                if mode == "👩‍🎓 وضع تعليمي":
+                    st.info("💡 تم تطبيق العملية الحسابية على الرقمين مباشرة")
+        except Exception as e:
+            st.error(f"❌ خطأ أثناء الحساب: {e}")
+
+# ---------------------
+# Tab 2: حل المعادلات
+# ---------------------
+with tab2:
+    st.header("📐 حل المعادلات خطوة بخطوة")
+    eq_text_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0)")
+
+    if st.button("حل المعادلة"):
+        try:
+            eq_text = convert_math_to_python(eq_text_input)
+            if "=" in eq_text:
+                left, _, right = eq_text.partition("=")
+                eq = Eq(sympify(left), sympify(right))
+            else:
+                st.error("❌ يجب أن تحتوي المعادلة على '='")
+                st.stop()
+            
+            sol = solve(eq, x)
+
+            if mode == "👩‍🎓 وضع تعليمي":
+                st.write("🔹 المعادلة الأصلية:", eq_text_input)
+                lhs_simplified = sympify(left) - sympify(right)
+                st.write("🔹 بعد النقل للحصول على 0:")
+                st.latex(Eq(lhs_simplified, 0))
+                st.write("🔹 الحل خطوة بخطوة:")
+                for s in sol:
+                    st.latex(f"x = {latex(s)}")
+
+            st.success(f"✅ الحل النهائي: x = {[latex(s) for s in sol]}")
+
+        except Exception as e:
+            st.error(f"❌ صيغة المعادلة غير صحيحة: {e}")
+
 # ---------------------
 # Tab 3: رسم وتحليل الدوال – نسخة محسنة
 # ---------------------
