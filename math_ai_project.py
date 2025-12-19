@@ -111,8 +111,7 @@ with tab3:
     
     draw_button = st.button("ارسم الدالة")
 
-    func_text = "x^2 - 4x + 3" if example else func_text_input
-
+   
     if draw_button:
         try:
             # تحويل الصياغة التقليدية إلى SymPy
