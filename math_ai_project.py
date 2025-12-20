@@ -16,20 +16,16 @@ x = symbols("x")
 mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
 
 # =====================
-# دالة لتحويل الصياغة الرياضية التقليدية إلى صياغة SymPy
+# تحويل الصياغة الرياضية
 # =====================
 def convert_math_to_python(text):
-    # تحويل ^2, ^3, ... إلى **
     text = re.sub(r'\^(\d+)', r'**\1', text)
-    # إضافة * بين الرقم والمتغير (مثال: 4x -> 4*x)
     text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
     text = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', text)
-    # إزالة الفراغات
-    text = text.replace(' ', '')
-    return text
+    return text.replace(" ", "")
 
 # =====================
-# Tabs للفصل بين الوظائف
+# Tabs
 # =====================
 tab1, tab2, tab3 = st.tabs([
     "🔢 العمليات الحسابية",
@@ -42,140 +38,88 @@ tab1, tab2, tab3 = st.tabs([
 # ---------------------
 with tab1:
     st.header("🔢 العمليات الحسابية")
-    a = st.number_input("الرقم الأول", value=0)
-    b = st.number_input("الرقم الثاني", value=0)
+    a = st.number_input("الرقم الأول", value=0.0)
+    b = st.number_input("الرقم الثاني", value=0.0)
     op = st.selectbox("العملية", ["جمع", "طرح", "ضرب", "قسمة"])
 
     if st.button("احسب"):
-        try:
-            if op == "جمع":
-                r = a + b
-            elif op == "طرح":
-                r = a - b
-            elif op == "ضرب":
-                r = a * b
-            elif op == "قسمة":
-                if b == 0:
-                    st.error("❌ لا يمكن القسمة على صفر")
-                    r = None
-                else:
-                    r = a / b
-            if r is not None:
-                st.success(f"✅ النتيجة = {r}")
-                if mode == "👩‍🎓 وضع تعليمي":
-                    st.info("💡 تم تطبيق العملية الحسابية على الرقمين مباشرة")
-        except Exception as e:
-            st.error(f"❌ خطأ أثناء الحساب: {e}")
+        if op == "قسمة" and b == 0:
+            st.error("❌ لا يمكن القسمة على صفر")
+        else:
+            result = {
+                "جمع": a + b,
+                "طرح": a - b,
+                "ضرب": a * b,
+                "قسمة": a / b
+            }[op]
+            st.success(f"✅ النتيجة = {result}")
 
 # ---------------------
-# Tab 2: حل المعادلات
+# Tab 2: حل المعادلات (✔ مصحح)
 # ---------------------
 with tab2:
     st.header("📐 حل المعادلات خطوة بخطوة")
-    eq_text_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0)")
+    eq_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0)")
 
     if st.button("حل المعادلة"):
         try:
-            eq_text = convert_math_to_python(eq_text_input)
-            if "=" in eq_text:
-                left, _, right = eq_text.partition("=")
-                eq = Eq(sympify(left), sympify(right))
-            else:
-                st.error("❌ يجب أن تحتوي المعادلة على '='")
-                st.stop()
-            
-            sol = solve(eq, x)
+            eq_text = convert_math_to_python(eq_input)
+            left, right = eq_text.split("=")
+            equation = Eq(sympify(left), sympify(right))
+
+            solutions = solve(equation, x)
 
             if mode == "👩‍🎓 وضع تعليمي":
-                st.write("🔹 المعادلة الأصلية:", eq_text_input)
-                lhs_simplified = sympify(left) - sympify(right)
-                st.write("🔹 بعد النقل للحصول على 0:")
-                st.latex(Eq(lhs_simplified, 0))
-                st.write("🔹 الحل خطوة بخطوة:")
-                for s in sol:
+                st.write("🔹 المعادلة الأصلية:")
+                st.latex(eq_input)
+
+                st.write("🔹 بعد النقل:")
+                st.latex(Eq(sympify(left) - sympify(right), 0))
+
+                st.write("🔹 الحلول:")
+                for s in solutions:
                     st.latex(f"x = {latex(s)}")
 
-            st.success(f"✅ الحل النهائي: x = {[latex(s) for s in sol]}")
+            st.success("✅ الحل النهائي:")
+            for s in solutions:
+                st.write(f"x = {s}")
 
-        except Exception as e:
-            st.error(f"❌ صيغة المعادلة غير صحيحة: {e}")
+        except:
+            st.error("❌ تأكدي من كتابة المعادلة بشكل صحيح")
 
 # ---------------------
-# Tab 3: رسم وتحليل الدوال – نسخة محسنة
+# Tab 3: رسم وتحليل الدوال (✔ مصحح)
 # ---------------------
 with tab3:
     st.header("📊 رسم وتحليل الدوال")
-    func_text_input = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)")
-    
-    color = st.color_picker("اختر لون المنحنى", "#1f77b4")
-    
-    draw_button = st.button("ارسم الدالة")
 
-   
-    if draw_button:
+    func_text = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)")
+    x_min, x_max = st.slider("نطاق x", -10, 10, (-5, 5))
+    y_min, y_max = st.slider("نطاق y", -10, 10, (-5, 5))
+
+    if st.button("ارسم الدالة"):
         try:
-            # تحويل الصياغة التقليدية إلى SymPy
-            func_text_sympy = convert_math_to_python(func_text)
-            allowed_functions = {"sin": sin, "cos": cos, "exp": exp, "log": log, "sqrt": lambda x: x**0.5}
-            f = sympify(func_text_sympy, locals=allowed_functions)
+            func_sympy = convert_math_to_python(func_text)
+            f = sympify(func_sympy)
 
-            # قيم x و y
-            xs = np.linspace(x_min, x_max, 500)
-            ys = []
-            for val in xs:
-                try:
-                    y_val = float(f.subs(x, val))
-                    ys.append(y_val)
-                except:
-                    ys.append(np.nan)  # تجاهل القيم غير الممكنة
-            ys = np.array(ys)
+            xs = np.linspace(x_min, x_max, 400)
+            ys = [float(f.subs(x, v)) for v in xs]
 
-            # نقاط التقاطع (x-axis)
-            roots = solve(f, x)
-            real_roots = [float(r.evalf()) for r in roots if r.is_real]
+            fig, ax = plt.subplots()
+            ax.plot(xs, ys)
+            ax.axhline(0)
+            ax.axvline(0)
+            ax.grid(True)
 
-            # النقاط الحرجة
-            df = diff(f, x)
-            crit_points = solve(df, x)
-            real_crit = [float(p.evalf()) for p in crit_points if p.is_real]
-            crit_vals = [float(f.subs(x, p)) for p in real_crit]
+            title = get_display(arabic_reshaper.reshape(f"رسم الدالة: {func_text}"))
+            ax.set_title(title)
 
-            # إعادة تشكيل النص العربي
-            title_text = get_display(arabic_reshaper.reshape(f"رسم الدالة: {func_text}"))
-            label_func = get_display(arabic_reshaper.reshape("الدالة"))
-            label_roots = get_display(arabic_reshaper.reshape("نقاط التقاطع"))
-            label_crit = get_display(arabic_reshaper.reshape("النقاط الحرجة"))
-
-            # ضبط matplotlib لدعم العربية
-            plt.rcParams['axes.unicode_minus'] = False
-
-            # رسم التمثيل البياني
-            fig, ax = plt.subplots(figsize=(8,5))
-            ax.plot(xs, ys, label=label_func, color=color)
-            ax.axhline(0, color='black', linewidth=1)
-            ax.axvline(0, color='black', linewidth=1)
-            ax.grid(True, linestyle='--', alpha=0.7)
-            ax.set_xlabel(get_display(arabic_reshaper.reshape('x')), fontsize=12)
-            ax.set_ylabel(get_display(arabic_reshaper.reshape('y')), fontsize=12)
-            ax.set_title(title_text, fontsize=14, fontweight='bold')
-
-            # نقاط التقاطع والنقاط الحرجة
-            if real_roots:
-                ax.scatter(real_roots, [0]*len(real_roots), color='red', label=label_roots)
-            if real_crit:
-                ax.scatter(real_crit, crit_vals, color='green', label=label_crit)
-
-            ax.set_xlim(x_min, x_max)
-            ax.set_ylim(y_min, y_max)
-            ax.legend(fontsize=10)
             st.pyplot(fig)
 
-            
-            # عرض نقاط التقاطع والنقاط الحرجة
-            st.subheader(label_roots)
+            roots = solve(f, x)
+            real_roots = [r for r in roots if r.is_real]
+            st.subheader("📍 نقاط التقاطع مع محور x")
             st.write(real_roots)
-            st.subheader(label_crit)
-            st.write(list(zip(real_crit, crit_vals)))
 
         except Exception as e:
             st.error(f"❌ خطأ في الدالة: {e}")
