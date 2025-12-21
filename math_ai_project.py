@@ -1,5 +1,5 @@
 import streamlit as st
-from sympy import symbols, Eq, solve, sympify, latex
+from sympy import symbols, Eq, solve, sympify, latex, lambdify
 import numpy as np
 import matplotlib.pyplot as plt
 import re
@@ -17,9 +17,10 @@ mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تع
 # تحويل الصياغة الرياضية
 # =====================
 def convert_math_to_python(text):
-    text = text.replace("^", "**")  # رفع للقوة
+    text = text.replace("^", "**")
     text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)  # 2x → 2*x
     text = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', text)  # x2 → x*2
+    text = re.sub(r'([a-zA-Z])([a-zA-Z])', r'\1*\2', text)  # xy → x*y
     text = text.replace(" ", "")
     return text
 
@@ -103,28 +104,38 @@ with tab3:
     if st.button("ارسم", key="plot"):
         try:
             # تحويل الدالة
-            f = sympify(convert_math_to_python(func_text))
-            xs = np.linspace(x_min, x_max, 400)
-            ys = [float(f.subs(x, v)) for v in xs]
+            f_sym = sympify(convert_math_to_python(func_text))
+            f = lambdify(x, f_sym, "numpy")
 
+            # تحديد نطاق الرسم تلقائيًا بناءً على جذور الدالة
+            roots = solve(Eq(f_sym, 0), x)
+            roots_real = [float(r.evalf()) for r in roots if r.is_real]
+
+            if roots_real:
+                x_min = min(roots_real) - 5
+                x_max = max(roots_real) + 5
+            else:
+                x_min, x_max = -10, 10
+
+            xs = np.linspace(x_min, x_max, 400)
+            ys = f(xs)
+
+            # الرسم
             fig, ax = plt.subplots()
             ax.plot(xs, ys, linewidth=2, label=str(func_text))
             ax.axhline(0, color="black")
             ax.axvline(0, color="black")
             ax.grid(True, linestyle="--", alpha=0.7)
 
-            # تمييز الجذور الحقيقية
-            eq = Eq(f, 0)
-            roots = solve(eq, x)
-            roots_real = [float(r.evalf()) for r in roots if r.is_real]
+            # تمييز الجذور
             for r in roots_real:
-                ax.plot(r, 0, 'ro', label=f'Root x={r}')
+                ax.plot(r, 0, 'ro', label=f'الجذر x={r}')
 
-            # إعدادات الرسم
-            ax.set_title(f" {func_text}")  # <-- تعديل العنوان هنا
-            ax.set_xlabel("x")
-            ax.set_ylabel("f(x)")
-            ax.legend()
+            # إعدادات الرسم بالعربية
+            ax.set_title(f"رسم الدالة: {func_text}", fontsize=14)
+            ax.set_xlabel("س", fontsize=12)
+            ax.set_ylabel("ص", fontsize=12)
+            ax.legend(fontsize=10)
 
             st.pyplot(fig)
 
