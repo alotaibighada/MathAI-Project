@@ -30,8 +30,19 @@ mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تع
 def convert_math_to_python(text):
     text = text.replace(" ", "")
     text = text.replace("^", "**")
+
+    # 2x → 2*x
     text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
+
+    # x2 → x*2
     text = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', text)
+
+    # x(x+1) → x*(x+1)
+    text = re.sub(r'([a-zA-Z])\(', r'\1*(', text)
+
+    # )( → )*(
+    text = re.sub(r'\)\(', r')*(', text)
+
     return text
 
 def arabic_text(text):
@@ -81,7 +92,7 @@ with tab1:
 with tab2:
     st.header("📐 حل المعادلات خطوة بخطوة")
 
-    eq_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4*x + 3 = 0)")
+    eq_input = st.text_input("أدخل المعادلة (مثال: x^2-4x+3 = 0)")
 
     if st.button("حل المعادلة"):
         if "=" not in eq_input:
@@ -97,12 +108,12 @@ with tab2:
                 for s in solutions:
                     st.latex(f"x = {latex(s)}")
 
-                # شرح نصي
                 explanation_lines = [
                     "هذه معادلة رياضية.",
-                    "قمنا بتحويل المعادلة إلى صيغة مناسبة للبرمجة.",
-                    "ثم قمنا بحل المعادلة باستخدام الذكاء الاصطناعي."
+                    "قمنا بإعادة كتابة المعادلة بصيغة مناسبة للبرنامج.",
+                    "ثم قمنا بحل المعادلة خطوة بخطوة."
                 ]
+
                 for s in solutions:
                     explanation_lines.append(f"قيمة اكس تساوي {s}")
 
@@ -113,7 +124,6 @@ with tab2:
                     for line in explanation_lines:
                         st.write("•", line)
 
-                # زر الصوت
                 if st.button("🎧 تشغيل الشرح الصوتي"):
                     audio_file = create_audio(explanation_text)
                     st.audio(audio_file, format="audio/mp3")
@@ -127,7 +137,7 @@ with tab2:
 with tab3:
     st.header("📊 رسم الدوال")
 
-    func_text = st.text_input("أدخل الدالة (مثال: x^2 - 4*x + 3)")
+    func_text = st.text_input("أدخل الدالة (مثال: x^2-4x+3)")
 
     if st.button("ارسم الدالة"):
         try:
