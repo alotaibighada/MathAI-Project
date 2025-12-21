@@ -24,14 +24,18 @@ def convert_math_to_python(text):
     return text.replace(" ", "")
 
 # =====================
-# إنشاء ملف صوتي
+# إنشاء الصوت (الحل الصحيح)
 # =====================
 def create_audio(text):
-    if os.path.exists("solution_audio.mp3"):
-        os.remove("solution_audio.mp3")
     tts = gTTS(text=text, lang='ar')
     tts.save("solution_audio.mp3")
-    return "solution_audio.mp3"
+
+    with open("solution_audio.mp3", "rb") as f:
+        audio_bytes = f.read()
+
+    return audio_bytes
+
+audio_data = None
 
 # =====================
 # Tabs
@@ -65,7 +69,7 @@ with tab1:
             st.success(f"✅ النتيجة = {result}")
 
 # ------------------------------------------------
-# Tab 2: حل المعادلات
+# Tab 2: حل المعادلات + صوت
 # ------------------------------------------------
 with tab2:
     st.header("📐 حل المعادلات")
@@ -93,15 +97,16 @@ with tab2:
                 if mode == "👩‍🎓 وضع تعليمي":
                     st.info(explanation)
 
-                if st.button("🎧 تشغيل الشرح الصوتي", key="audio"):
-                    audio = create_audio(explanation)
-                    st.audio(audio)
+                audio_data = create_audio(explanation)
 
         except Exception as e:
             st.error(f"❌ خطأ: {e}")
 
+    if audio_data:
+        st.audio(audio_data, format="audio/mp3")
+
 # ------------------------------------------------
-# Tab 3: رسم الدوال (بدون لخبطة عربي)
+# Tab 3: رسم الدوال
 # ------------------------------------------------
 with tab3:
     st.header("📊 رسم الدوال")
@@ -116,14 +121,13 @@ with tab3:
             ys = [float(f.subs(x, v)) for v in xs]
 
             fig, ax = plt.subplots()
-
             ax.plot(xs, ys, linewidth=2)
-            ax.axhline(0, color='black')
-            ax.axvline(0, color='black')
+            ax.axhline(0, color="black")
+            ax.axvline(0, color="black")
             ax.grid(True)
 
-            # 👇 الحل الجذري: لا نستخدم عربي في الرسم
-            ax.set_title("Graph of the function")
+            # بدون عربي داخل الرسم (حل اللخبطة)
+            ax.set_title("Function Graph")
             ax.set_xlabel("x")
             ax.set_ylabel("f(x)")
 
