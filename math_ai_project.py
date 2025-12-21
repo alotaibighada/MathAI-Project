@@ -1,4 +1,5 @@
-from sympy import symbols, Eq, solve, sympify, diff, latex
+import streamlit as st
+from sympy import symbols, Eq, solve, sympify, latex
 import numpy as np
 import matplotlib.pyplot as plt
 import re
@@ -51,7 +52,7 @@ with tab1:
     b = st.number_input("الرقم الثاني", value=0.0)
     op = st.selectbox("العملية", ["جمع", "طرح", "ضرب", "قسمة"])
 
-    if st.button("احسب"):
+    if st.button("احسب", key="calc"):
         if op == "قسمة" and b == 0:
             st.error("❌ لا يمكن القسمة على صفر")
         else:
@@ -64,18 +65,18 @@ with tab1:
             st.success(f"✅ النتيجة = {result}")
 
 # ------------------------------------------------
-# Tab 2: حل المعادلات + صوت
+# Tab 2: حل المعادلات
 # ------------------------------------------------
 with tab2:
     st.header("📐 حل المعادلات")
 
     eq_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0)")
 
-    if st.button("حل المعادلة"):
-        if "=" not in eq_input:
-            st.error("❌ يجب كتابة المعادلة وبها =")
-        else:
-            try:
+    if st.button("حل المعادلة", key="solve"):
+        try:
+            if "=" not in eq_input:
+                st.error("❌ يجب كتابة المعادلة وبها =")
+            else:
                 eq_text = convert_math_to_python(eq_input)
                 left, right = eq_text.split("=")
                 equation = Eq(sympify(left), sympify(right))
@@ -85,25 +86,22 @@ with tab2:
                 for s in solutions:
                     st.latex(f"x = {latex(s)}")
 
-                # شرح نصي
-                explanation = "هذه معادلة رياضية. "
-                explanation += "قمنا بنقل الحدود إلى طرف واحد. "
-                explanation += "ثم قمنا بحل المعادلة. "
+                explanation = "هذه معادلة رياضية. قمنا بنقل الحدود إلى طرف واحد ثم حل المعادلة. "
                 for s in solutions:
                     explanation += f"قيمة اكس تساوي {s}. "
 
                 if mode == "👩‍🎓 وضع تعليمي":
                     st.info(explanation)
 
-                if st.button("🎧 تشغيل الشرح الصوتي"):
+                if st.button("🎧 تشغيل الشرح الصوتي", key="audio"):
                     audio = create_audio(explanation)
-                    st.audio(audio, format="audio/mp3")
+                    st.audio(audio)
 
-            except Exception as e:
-                st.error(f"❌ خطأ في الحل: {e}")
+        except Exception as e:
+            st.error(f"❌ خطأ: {e}")
 
 # ------------------------------------------------
-# Tab 3: رسم الدوال
+# Tab 3: رسم الدوال (بدون لخبطة عربي)
 # ------------------------------------------------
 with tab3:
     st.header("📊 رسم الدوال")
@@ -111,17 +109,23 @@ with tab3:
     func_text = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)")
     x_min, x_max = st.slider("نطاق x", -10, 10, (-5, 5))
 
-    if st.button("ارسم"):
+    if st.button("ارسم", key="plot"):
         try:
             f = sympify(convert_math_to_python(func_text))
             xs = np.linspace(x_min, x_max, 400)
             ys = [float(f.subs(x, v)) for v in xs]
 
             fig, ax = plt.subplots()
-            ax.plot(xs, ys)
-            ax.axhline(0)
-            ax.axvline(0)
+
+            ax.plot(xs, ys, linewidth=2)
+            ax.axhline(0, color='black')
+            ax.axvline(0, color='black')
             ax.grid(True)
+
+            # 👇 الحل الجذري: لا نستخدم عربي في الرسم
+            ax.set_title("Graph of the function")
+            ax.set_xlabel("x")
+            ax.set_ylabel("f(x)")
 
             st.pyplot(fig)
 
