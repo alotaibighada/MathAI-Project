@@ -8,7 +8,7 @@ import re
 # إعداد الصفحة
 # =====================
 st.set_page_config(page_title="Math AI Project", layout="wide")
-st.title("🧮 Math AI – مشروع علمي ذكي بدون صوت")
+st.title("🧮 Math AI")
 
 x = symbols("x")
 mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
@@ -99,7 +99,6 @@ with tab3:
     st.header("📊 رسم الدوال")
 
     func_text = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)")
-    x_min, x_max = st.slider("نطاق x", -10, 10, (-5, 5))
 
     if st.button("ارسم", key="plot"):
         try:
@@ -122,7 +121,7 @@ with tab3:
                 ax.plot(r, 0, 'ro', label=f'Root x={r}')
 
             # إعدادات الرسم
-            ax.set_title(f"رسم الدالة الرياضية: {func_text}")  # <-- تعديل العنوان هنا
+            ax.set_title(f" {func_text}")  # <-- تعديل العنوان هنا
             ax.set_xlabel("x")
             ax.set_ylabel("f(x)")
             ax.legend()
