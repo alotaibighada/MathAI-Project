@@ -120,6 +120,9 @@ with tab3:
     
     if st.button("ارسم الدالة"):
         try:
+            x_min, x_max = st.slider("نطاق x", -10, 10, (-5, 5))
+    y_min, y_max = st.slider("نطاق y", -10, 10, (-5, 5))
+
             func_sympy = convert_math_to_python(func_text)
             f = sympify(func_sympy)
 
