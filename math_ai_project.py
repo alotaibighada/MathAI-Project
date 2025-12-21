@@ -3,14 +3,12 @@ from sympy import symbols, Eq, solve, sympify, latex
 import numpy as np
 import matplotlib.pyplot as plt
 import re
-from gtts import gTTS
-import os
 
 # =====================
 # إعداد الصفحة
 # =====================
 st.set_page_config(page_title="Math AI Project", layout="wide")
-st.title("🧮 Math AI ")
+st.title("🧮 Math AI – مشروع علمي ذكي بدون صوت")
 
 x = symbols("x")
 mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
@@ -22,20 +20,6 @@ def convert_math_to_python(text):
     text = re.sub(r'\^(\d+)', r'**\1', text)
     text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
     return text.replace(" ", "")
-
-# =====================
-# إنشاء الصوت (الحل الصحيح)
-# =====================
-def create_audio(text):
-    tts = gTTS(text=text, lang='ar')
-    tts.save("solution_audio.mp3")
-
-    with open("solution_audio.mp3", "rb") as f:
-        audio_bytes = f.read()
-
-    return audio_bytes
-
-audio_data = None
 
 # =====================
 # Tabs
@@ -69,13 +53,13 @@ with tab1:
             st.success(f"✅ النتيجة = {result}")
 
 # ------------------------------------------------
-# Tab 2: حل المعادلات + صوت
+# Tab 2: حل المعادلات بالتفصيل
 # ------------------------------------------------
 with tab2:
-    st.header("📐 حل المعادلات")
+    st.header("📐 حل المعادلات خطوة خطوة")
 
     eq_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0)")
-
+    
     if st.button("حل المعادلة", key="solve"):
         try:
             if "=" not in eq_input:
@@ -84,54 +68,15 @@ with tab2:
                 eq_text = convert_math_to_python(eq_input)
                 left, right = eq_text.split("=")
                 equation = Eq(sympify(left), sympify(right))
+                
                 solutions = solve(equation, x)
 
-                st.subheader("الحلول")
-                for s in solutions:
-                    st.latex(f"x = {latex(s)}")
-
-                explanation = "هذه معادلة رياضية. قمنا بنقل الحدود إلى طرف واحد ثم حل المعادلة. "
-                for s in solutions:
-                    explanation += f"قيمة اكس تساوي {s}. "
-
-                if mode == "👩‍🎓 وضع تعليمي":
-                    st.info(explanation)
-
-                audio_data = create_audio(explanation)
-
-        except Exception as e:
-            st.error(f"❌ خطأ: {e}")
-
-    if audio_data:
-        st.audio(audio_data, format="audio/mp3")
-
-# ------------------------------------------------
-# Tab 3: رسم الدوال
-# ------------------------------------------------
-with tab3:
-    st.header("📊 رسم الدوال")
-
-    func_text = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)")
-    x_min, x_max = st.slider("نطاق x", -10, 10, (-5, 5))
-
-    if st.button("ارسم", key="plot"):
-        try:
-            f = sympify(convert_math_to_python(func_text))
-            xs = np.linspace(x_min, x_max, 400)
-            ys = [float(f.subs(x, v)) for v in xs]
-
-            fig, ax = plt.subplots()
-            ax.plot(xs, ys, linewidth=2)
-            ax.axhline(0, color="black")
-            ax.axvline(0, color="black")
-            ax.grid(True)
-
-            # بدون عربي داخل الرسم (حل اللخبطة)
-            ax.set_title("Function Graph")
-            ax.set_xlabel("x")
-            ax.set_ylabel("f(x)")
-
-            st.pyplot(fig)
-
-        except Exception as e:
-            st.error(f"❌ خطأ في الدالة: {e}")
+                # عرض خطوات الحل
+                st.subheader("خطوات الحل:")
+                st.markdown(f"1️⃣ تم إدخال المعادلة: `{eq_input}`")
+                st.markdown(f"2️⃣ تحويل المعادلة لصيغة Python: `{eq_text}`")
+                st.markdown(f"3️⃣ إنشاء كائن Sympy للمساواة: `{equation}`")
+                st.markdown("4️⃣ حل المعادلة باستخدام solve()")
+                
+                for i, s in enumerate(solutions, start=1):
+                    st.markdown(f"5.{i}️⃣ وجدنا الحل: x = {s}")
