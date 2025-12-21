@@ -4,11 +4,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import re
+import arabic_reshaper
+from bidi.algorithm import get_display
 
 # =====================
 # إعداد الخط العربي في Matplotlib
 # =====================
-rcParams['font.family'] = 'Arial'  # استخدم خط عربي متوفر على جهازك
+rcParams['font.family'] = 'Arial'  # أو أي خط عربي متاح في جهازك
 rcParams['axes.unicode_minus'] = False
 
 # =====================
@@ -25,9 +27,9 @@ mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تع
 # =====================
 def convert_math_to_python(text):
     text = text.replace("^", "**")
-    text = re.sub(r'(\d)([a-zA-Zأ-ي])', r'\1*\2', text)  # 2x → 2*x
-    text = re.sub(r'([a-zA-Zأ-ي])(\d)', r'\1*\2', text)  # x2 → x*2
-    text = re.sub(r'([a-zA-Zأ-ي])([a-zA-Zأ-ي])', r'\1*\2', text)  # xy → x*y
+    text = re.sub(r'(\d)([a-zA-Zأ-ي])', r'\1*\2', text)
+    text = re.sub(r'([a-zA-Zأ-ي])(\d)', r'\1*\2', text)
+    text = re.sub(r'([a-zA-Zأ-ي])([a-zA-Zأ-ي])', r'\1*\2', text)
     text = text.replace(" ", "")
 
     # تحويل الدوال العربية إلى sympy
@@ -42,6 +44,14 @@ def convert_math_to_python(text):
     for k, v in arabic_to_sympy.items():
         text = text.replace(k, v)
     return text
+
+# =====================
+# دالة لإظهار النصوص العربية في الرسم
+# =====================
+def arabic_text(text):
+    reshaped_text = arabic_reshaper.reshape(text)
+    bidi_text = get_display(reshaped_text)
+    return bidi_text
 
 # =====================
 # Tabs
@@ -150,7 +160,7 @@ with tab3:
 
             # الرسم
             fig, ax = plt.subplots()
-            ax.plot(xs, ys, linewidth=2, label=str(func_text))
+            ax.plot(xs, ys, linewidth=2, label=arabic_text(str(func_text)))
             ax.axhline(0, color="black")
             ax.axvline(0, color="black")
             ax.grid(True, linestyle="--", alpha=0.7)
@@ -159,13 +169,13 @@ with tab3:
             seen = set()
             for r in roots_real:
                 if r not in seen:
-                    ax.plot(r, 0, 'ro', label=f'الجذر x={r}')
+                    ax.plot(r, 0, 'ro', label=arabic_text(f'الجذر x={r}'))
                     seen.add(r)
 
             # إعدادات الرسم بالعربية
-            ax.set_title(f"رسم الدالة: {func_text}", fontsize=14)
-            ax.set_xlabel("س", fontsize=12)
-            ax.set_ylabel("ص", fontsize=12)
+            ax.set_title(arabic_text(f"رسم الدالة: {func_text}"), fontsize=14)
+            ax.set_xlabel(arabic_text("س"), fontsize=12)
+            ax.set_ylabel(arabic_text("ص"), fontsize=12)
             ax.legend(fontsize=10)
             fig.tight_layout()
 
