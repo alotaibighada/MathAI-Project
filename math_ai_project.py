@@ -59,16 +59,18 @@ with tab2:
     st.header("📐 حل المعادلات خطوة خطوة")
 
     eq_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0)")
-    
+
     if st.button("حل المعادلة", key="solve"):
         try:
             if "=" not in eq_input:
                 st.error("❌ يجب كتابة المعادلة وبها =")
             else:
+                # تحويل المعادلة
                 eq_text = convert_math_to_python(eq_input)
                 left, right = eq_text.split("=")
                 equation = Eq(sympify(left), sympify(right))
                 
+                # حل المعادلة
                 solutions = solve(equation, x)
 
                 # عرض خطوات الحل
@@ -77,6 +79,52 @@ with tab2:
                 st.markdown(f"2️⃣ تحويل المعادلة لصيغة Python: `{eq_text}`")
                 st.markdown(f"3️⃣ إنشاء كائن Sympy للمساواة: `{equation}`")
                 st.markdown("4️⃣ حل المعادلة باستخدام solve()")
-                
+
                 for i, s in enumerate(solutions, start=1):
                     st.markdown(f"5.{i}️⃣ وجدنا الحل: x = {s}")
+
+                st.subheader("الحلول النهائية")
+                for s in solutions:
+                    st.latex(f"x = {latex(s)}")
+        except Exception as e:
+            st.error(f"❌ خطأ في حل المعادلة: {e}")
+
+# ------------------------------------------------
+# Tab 3: رسم الدوال مع تمييز الجذور
+# ------------------------------------------------
+with tab3:
+    st.header("📊 رسم الدوال")
+
+    func_text = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)")
+    x_min, x_max = st.slider("نطاق x", -10, 10, (-5, 5))
+
+    if st.button("ارسم", key="plot"):
+        try:
+            # تحويل الدالة
+            f = sympify(convert_math_to_python(func_text))
+            xs = np.linspace(x_min, x_max, 400)
+            ys = [float(f.subs(x, v)) for v in xs]
+
+            fig, ax = plt.subplots()
+            ax.plot(xs, ys, linewidth=2, label=str(func_text))
+            ax.axhline(0, color="black")
+            ax.axvline(0, color="black")
+            ax.grid(True)
+
+            # تمييز الجذور الحقيقية
+            eq = Eq(f, 0)
+            roots = solve(eq, x)
+            roots_real = [float(r) for r in roots if r.is_real]
+            for r in roots_real:
+                ax.plot(r, 0, 'ro', label=f'Root x={r}')
+
+            # إعدادات الرسم
+            ax.set_title("Function Graph")
+            ax.set_xlabel("x")
+            ax.set_ylabel("f(x)")
+            ax.legend()
+
+            st.pyplot(fig)
+
+        except Exception as e:
+            st.error(f"❌ خطأ في الدالة: {e}")
