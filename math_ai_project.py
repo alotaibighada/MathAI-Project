@@ -122,7 +122,7 @@ with tab3:
                 ax.plot(r, 0, 'ro', label=f'Root x={r}')
 
             # إعدادات الرسم
-            ax.set_title(f": {func_text}")  # <-- تعديل العنوان هنا
+            ax.set_title(f" {func_text}")  # <-- تعديل العنوان هنا
             ax.set_xlabel("x")
             ax.set_ylabel("f(x)")
             ax.legend()
