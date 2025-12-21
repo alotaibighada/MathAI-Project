@@ -106,7 +106,6 @@ with tab3:
             # تحويل الدالة
             f = sympify(convert_math_to_python(func_text))
             xs = np.linspace(x_min, x_max, 400)
-            ys = [float(f.subs(x, v)) for v in xs]
 
             fig, ax = plt.subplots()
             ax.plot(xs, ys, linewidth=2, label=str(func_text))
