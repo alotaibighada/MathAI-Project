@@ -17,9 +17,11 @@ mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تع
 # تحويل الصياغة الرياضية
 # =====================
 def convert_math_to_python(text):
-    text = re.sub(r'\^(\d+)', r'**\1', text)
-    text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
-    return text.replace(" ", "")
+    text = text.replace("^", "**")  # رفع للقوة
+    text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)  # 2x → 2*x
+    text = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', text)  # x2 → x*2
+    text = text.replace(" ", "")
+    return text
 
 # =====================
 # Tabs
@@ -77,7 +79,8 @@ with tab2:
                 st.subheader("خطوات الحل:")
                 st.markdown(f"1️⃣ تم إدخال المعادلة: `{eq_input}`")
                 st.markdown(f"2️⃣ تحويل المعادلة لصيغة Python: `{eq_text}`")
-                st.markdown(f"3️⃣ إنشاء كائن Sympy للمساواة: `{equation}`")
+                st.markdown(f"3️⃣ إنشاء كائن Sympy للمساواة:")
+                st.latex(latex(equation))
                 st.markdown("4️⃣ حل المعادلة باستخدام solve()")
 
                 for i, s in enumerate(solutions, start=1):
@@ -109,17 +112,17 @@ with tab3:
             ax.plot(xs, ys, linewidth=2, label=str(func_text))
             ax.axhline(0, color="black")
             ax.axvline(0, color="black")
-            ax.grid(True)
+            ax.grid(True, linestyle="--", alpha=0.7)
 
             # تمييز الجذور الحقيقية
             eq = Eq(f, 0)
             roots = solve(eq, x)
-            roots_real = [float(r) for r in roots if r.is_real]
+            roots_real = [float(r.evalf()) for r in roots if r.is_real]
             for r in roots_real:
                 ax.plot(r, 0, 'ro', label=f'Root x={r}')
 
             # إعدادات الرسم
-            ax.set_title("Function Graph")
+            ax.set_title(f"رسم الدالة: {func_text}")
             ax.set_xlabel("x")
             ax.set_ylabel("f(x)")
             ax.legend()
