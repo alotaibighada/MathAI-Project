@@ -10,39 +10,45 @@ from bidi.algorithm import get_display
 # =====================
 # إعداد الخط العربي في Matplotlib
 # =====================
-rcParams['font.family'] = 'Arial'  # أو أي خط عربي متاح في جهازك
+rcParams['font.family'] = 'Arial'  # أو أي خط عربي متاح على جهازك
 rcParams['axes.unicode_minus'] = False
 
 # =====================
 # إعداد الصفحة
 # =====================
 st.set_page_config(page_title="Math AI Project", layout="wide")
-st.title("🧮 مشروع Math AI – دعم اللغة العربية بالكامل")
+st.title("🧮 مشروع Math AI – دعم اللغة العربية بالكامل مع معالجة الدوال")
 
 x = symbols("x")
 mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
 
 # =====================
-# تحويل الصياغة الرياضية (مع دعم الدوال بالعربي)
+# تحويل الصياغة الرياضية (مع دعم الدوال العربية بشكل صارم)
 # =====================
 def convert_math_to_python(text):
+    # إزالة المسافات
+    text = text.replace(" ", "")
+    # تحويل ^ إلى **
     text = text.replace("^", "**")
+    # تحويل الضرب الضمني
     text = re.sub(r'(\d)([a-zA-Zأ-ي])', r'\1*\2', text)
     text = re.sub(r'([a-zA-Zأ-ي])(\d)', r'\1*\2', text)
     text = re.sub(r'([a-zA-Zأ-ي])([a-zA-Zأ-ي])', r'\1*\2', text)
-    text = text.replace(" ", "")
 
     # تحويل الدوال العربية إلى sympy
     arabic_to_sympy = {
+        "جذر": "sqrt",
         "جيب": "sin",
         "جتا": "cos",
         "ظل": "tan",
-        "جذر": "sqrt",
         "لوغ": "log",
         "ln": "log"
     }
+
     for k, v in arabic_to_sympy.items():
-        text = text.replace(k, v)
+        # استبدال الكلمة فقط إذا وجدت بشكل كامل (لتجنب الأحرف الزائدة)
+        text = re.sub(rf"\b{k}\b", v, text)
+
     return text
 
 # =====================
@@ -90,27 +96,24 @@ with tab1:
 with tab2:
     st.header("📐 حل المعادلات خطوة خطوة")
 
-    eq_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0 أو x^2 - 4x + 3 = 0)")
+    eq_input = st.text_input("أدخل المعادلة (مثال: x^2 - 4x + 3 = 0 أو جذر(x+1) = 0)")
 
     if st.button("حل المعادلة", key="solve"):
         try:
             if "=" not in eq_input:
                 st.error("❌ يجب كتابة المعادلة وبها =")
             else:
-                # تحويل المعادلة
                 eq_text = convert_math_to_python(eq_input)
                 left, right = eq_text.split("=")
                 equation = Eq(sympify(left), sympify(right))
-                
-                # حل المعادلة
+
                 solutions = solve(equation, x)
 
-                # عرض خطوات الحل حسب الوضع
                 st.subheader("خطوات الحل:")
                 if mode == "👩‍🎓 وضع تعليمي":
                     st.markdown(f"1️⃣ تم إدخال المعادلة: `{eq_input}`")
                     st.markdown(f"2️⃣ تحويل المعادلة لصيغة Python: `{eq_text}`")
-                    st.markdown(f"3️⃣ إنشاء كائن Sympy للمساواة:")
+                    st.markdown("3️⃣ إنشاء كائن Sympy للمساواة:")
                     st.latex(latex(equation))
                     st.markdown("4️⃣ حل المعادلة باستخدام solve()")
                 else:
@@ -135,11 +138,9 @@ with tab3:
 
     if st.button("ارسم", key="plot"):
         try:
-            # تحويل الدالة
             f_sym = sympify(convert_math_to_python(func_text))
             f = lambdify(x, f_sym, "numpy")
 
-            # تحديد نطاق الرسم تلقائيًا بناءً على جذور الدالة
             roots = solve(Eq(f_sym, 0), x)
             roots_real = []
             for r in roots:
@@ -149,30 +150,23 @@ with tab3:
                 except:
                     pass
 
-            if roots_real:
-                x_min = min(roots_real) - 5
-                x_max = max(roots_real) + 5
-            else:
-                x_min, x_max = -10, 10
-
+            x_min = min(roots_real)-5 if roots_real else -10
+            x_max = max(roots_real)+5 if roots_real else 10
             xs = np.linspace(x_min, x_max, 400)
             ys = f(xs)
 
-            # الرسم
             fig, ax = plt.subplots()
             ax.plot(xs, ys, linewidth=2, label=arabic_text(str(func_text)))
             ax.axhline(0, color="black")
             ax.axvline(0, color="black")
             ax.grid(True, linestyle="--", alpha=0.7)
 
-            # تمييز الجذور
             seen = set()
             for r in roots_real:
                 if r not in seen:
                     ax.plot(r, 0, 'ro', label=arabic_text(f'الجذر x={r}'))
                     seen.add(r)
 
-            # إعدادات الرسم بالعربية
             ax.set_title(arabic_text(f"رسم الدالة: {func_text}"), fontsize=14)
             ax.set_xlabel(arabic_text("س"), fontsize=12)
             ax.set_ylabel(arabic_text("ص"), fontsize=12)
