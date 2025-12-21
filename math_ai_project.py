@@ -104,7 +104,6 @@ with tab3:
     if st.button("ارسم", key="plot"):
         try:
             # تحويل الدالة
-            f = sympify(convert_math_to_python(func_text))
             xs = np.linspace(x_min, x_max, 400)
             ys = [float(f.subs(x, v)) for v in xs]
 
