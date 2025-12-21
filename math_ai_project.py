@@ -10,7 +10,7 @@ import os
 # إعداد الصفحة
 # =====================
 st.set_page_config(page_title="Math AI Project", layout="wide")
-st.title("🧮 Math AI – مشروع علمي ذكي")
+st.title("🧮 Math AI ")
 
 x = symbols("x")
 mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
