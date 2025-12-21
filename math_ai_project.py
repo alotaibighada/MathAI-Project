@@ -4,8 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import re
-from gtts import gTTS
-import os
 import arabic_reshaper
 from bidi.algorithm import get_display
 
@@ -19,7 +17,7 @@ rcParams['axes.unicode_minus'] = False
 # إعداد الصفحة
 # =====================
 st.set_page_config(page_title="Math AI Project", layout="wide")
-st.title("🧮 مشروع Math AI – النسخة النهائية")
+st.title("🧮 مشروع Math AI – شرح تفصيلي لحل المعادلات")
 
 x = symbols("x")
 mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
@@ -30,37 +28,21 @@ mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تع
 def convert_math_to_python(text):
     text = text.replace(" ", "")
     text = text.replace("^", "**")
-
-    # 2x → 2*x
     text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
-
-    # x2 → x*2
     text = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', text)
-
-    # x(x+1) → x*(x+1)
     text = re.sub(r'([a-zA-Z])\(', r'\1*(', text)
-
-    # )( → )*(
     text = re.sub(r'\)\(', r')*(', text)
-
     return text
 
 def arabic_text(text):
     return get_display(arabic_reshaper.reshape(text))
-
-def create_audio(text):
-    if os.path.exists("solution_audio.mp3"):
-        os.remove("solution_audio.mp3")
-    tts = gTTS(text=text, lang="ar")
-    tts.save("solution_audio.mp3")
-    return "solution_audio.mp3"
 
 # =====================
 # Tabs
 # =====================
 tab1, tab2, tab3 = st.tabs([
     "🔢 العمليات الحسابية",
-    "📐 حل المعادلات",
+    "📐 حل المعادلات (شرح تفصيلي)",
     "📊 رسم الدوال"
 ])
 
@@ -87,49 +69,67 @@ with tab1:
             st.success(f"✅ النتيجة = {result}")
 
 # ------------------------------------------------
-# Tab 2: حل المعادلات + الشرح الصوتي
+# Tab 2: حل المعادلات (شرح تفصيلي)
 # ------------------------------------------------
 with tab2:
-    st.header("📐 حل المعادلات خطوة بخطوة")
+    st.header("📐 حل المعادلات خطوة بخطوة (شرح تفصيلي)")
 
     eq_input = st.text_input("أدخل المعادلة (مثال: x^2-4x+3 = 0)")
 
     if st.button("حل المعادلة"):
         if "=" not in eq_input:
-            st.error("❌ يجب أن تحتوي المعادلة على =")
+            st.error("❌ يجب أن تحتوي المعادلة على علامة =")
         else:
             try:
+                # 1️⃣ تحويل الصيغة
                 eq_text = convert_math_to_python(eq_input)
                 left, right = eq_text.split("=")
+
+                # 2️⃣ تكوين المعادلة
                 equation = Eq(sympify(left), sympify(right))
+                moved_eq = sympify(left) - sympify(right)
+
+                # 3️⃣ تحديد نوع المعادلة
+                degree = moved_eq.as_poly(x).degree()
+
                 solutions = solve(equation, x)
 
-                st.subheader("🔹 الحلول")
+                # =====================
+                # الشرح التفصيلي
+                # =====================
+                st.subheader("🧠 شرح خطوات الحل")
+
+                st.markdown("### ① كتابة المعادلة")
+                st.write(f"المعادلة المدخلة هي:")
+                st.latex(eq_input)
+
+                st.markdown("### ② تحويل المعادلة إلى صيغة مناسبة")
+                st.write("نحوّل المعادلة إلى صيغة يستطيع البرنامج التعامل معها:")
+                st.code(eq_text)
+
+                st.markdown("### ③ نقل جميع الحدود إلى طرف واحد")
+                st.write("نطرح الطرف الأيمن من الطرف الأيسر للحصول على صفر:")
+                st.latex(Eq(moved_eq, 0))
+
+                st.markdown("### ④ تحديد نوع المعادلة")
+                if degree == 1:
+                    st.write("هذه **معادلة خطية من الدرجة الأولى**.")
+                elif degree == 2:
+                    st.write("هذه **معادلة تربيعية من الدرجة الثانية**.")
+                else:
+                    st.write("هذه معادلة من درجة أعلى.")
+
+                st.markdown("### ⑤ حل المعادلة")
+                st.write("نقوم بحل المعادلة لإيجاد قيمة المتغير x.")
+
                 for s in solutions:
                     st.latex(f"x = {latex(s)}")
 
-                explanation_lines = [
-                    "هذه معادلة رياضية.",
-                    "قمنا بإعادة كتابة المعادلة بصيغة مناسبة للبرنامج.",
-                    "ثم قمنا بحل المعادلة خطوة بخطوة."
-                ]
-
-                for s in solutions:
-                    explanation_lines.append(f"قيمة اكس تساوي {s}")
-
-                explanation_text = " ".join(explanation_lines)
-
-                if mode == "👩‍🎓 وضع تعليمي":
-                    st.subheader("🧠 شرح الحل")
-                    for line in explanation_lines:
-                        st.write("•", line)
-
-                if st.button("🎧 تشغيل الشرح الصوتي"):
-                    audio_file = create_audio(explanation_text)
-                    st.audio(audio_file, format="audio/mp3")
+                st.markdown("### ✅ الحل النهائي")
+                st.success(f"قيم x التي تحقق المعادلة هي: {solutions}")
 
             except Exception as e:
-                st.error(f"❌ خطأ في الحل: {e}")
+                st.error(f"❌ حدث خطأ أثناء الحل: {e}")
 
 # ------------------------------------------------
 # Tab 3: رسم الدوال
