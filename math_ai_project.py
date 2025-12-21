@@ -98,9 +98,8 @@ with tab2:
 with tab3:
     st.header("📊 رسم الدوال")
 
-    func_text = st.text_input("أدخل الدالة (مثال: x^2 - 4x + 3)")
-    x_min, x_max = st.slider("نطاق x", -10, 10, (-5, 5))
-
+    func_text = st.text_input("أدخل الدالة ( x^2 - 4x + 3)")
+    
     if st.button("ارسم", key="plot"):
         try:
             # تحويل الدالة
