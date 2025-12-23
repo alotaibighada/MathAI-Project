@@ -10,8 +10,8 @@ from bidi.algorithm import get_display
 # إعداد الصفحة
 # =====================
 st.set_page_config(page_title="Math AI", layout="wide")
-st.title("🧮 Math AI – مساعد الرياضيات التعليمي")
-st.caption("✦ معلمة مبدعة للجميع ✦")
+st.title("🧮 Math AI")
+st.caption("✦ مشروع تعليمي ✦")
 
 x = symbols("x")
 
