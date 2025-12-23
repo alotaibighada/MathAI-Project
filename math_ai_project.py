@@ -17,12 +17,15 @@ rcParams['axes.unicode_minus'] = False
 st.set_page_config(page_title="Math AI Project", layout="wide")
 
 # =====================
-# شعار المشروع
+# شعار نصّي للمشروع (بدون صور)
 # =====================
-st.image("logo.png", width=180)
-st.markdown("<h2 style='text-align:center;'>Math AI</h2>", unsafe_allow_html=True)
 st.markdown(
-    "<p style='text-align:center; color:gray;'>مساعد ذكي لتعلم الرياضيات</p>",
+    """
+    <div style="text-align:center;">
+        <h1>🧮 Math AI</h1>
+        <h4 style="color:gray;">مساعد ذكي لتعلم الرياضيات</h4>
+    </div>
+    """,
     unsafe_allow_html=True
 )
 st.divider()
@@ -31,14 +34,18 @@ x = symbols("x")
 mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
 
 # =====================
-# تحويل الصيغة الرياضية
+# تحويل الصيغة الرياضية الطبيعية إلى Python
 # =====================
 def convert_math_to_python(text):
     text = text.replace(" ", "")
     text = text.replace("^", "**")
+    # 2x → 2*x
     text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
+    # x2 → x*2
     text = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', text)
+    # x(x+1) → x*(x+1)
     text = re.sub(r'([a-zA-Z])\(', r'\1*(', text)
+    # )( → )*(
     text = re.sub(r'\)\(', r')*(', text)
     return text
 
@@ -73,7 +80,7 @@ with tab1:
             st.success(f"✅ النتيجة = {result}")
 
 # ------------------------------------------------
-# Tab 2: حل المعادلات مع الشرح
+# Tab 2: حل المعادلات مع الشرح التفصيلي
 # ------------------------------------------------
 with tab2:
     st.header("📐 حل المعادلات خطوة بخطوة")
@@ -91,15 +98,18 @@ with tab2:
 
                 if mode == "👩‍🎓 وضع تعليمي":
                     st.subheader("🔍 خطوات الحل")
-                    st.markdown(f"**1️⃣ المعادلة المدخلة:** `{eq_input}`")
-                    st.markdown(f"**2️⃣ بعد التحويل البرمجي:** `{eq_text}`")
-                    st.markdown("**3️⃣ نقل جميع الحدود لطرف واحد:**")
+                    st.markdown(f"**1️⃣ المعادلة الأصلية:** `{eq_input}`")
+                    st.markdown(f"**2️⃣ بعد تحويلها لصيغة برمجية:** `{eq_text}`")
+                    st.markdown("**3️⃣ صيغة المعادلة الرياضية:**")
                     st.latex(latex(equation))
-                    st.markdown("**4️⃣ حل المعادلة:**")
+                    st.markdown("**4️⃣ إيجاد قيم x التي تحقق المعادلة:**")
 
                 st.subheader("✅ الحل النهائي")
-                for s in solutions:
-                    st.latex(f"x = {latex(s)}")
+                if solutions:
+                    for s in solutions:
+                        st.latex(f"x = {latex(s)}")
+                else:
+                    st.info("لا يوجد حل حقيقي للمعادلة")
 
         except Exception as e:
             st.error(f"❌ خطأ في المعادلة: {e}")
