@@ -1,5 +1,5 @@
 import streamlit as st
-from sympy import symbols, Eq, solve, sympify, latex, expand
+from sympy import symbols, Eq, solve, sympify, latex, expand, lambdify
 import numpy as np
 import matplotlib.pyplot as plt
 import re
@@ -9,17 +9,13 @@ from bidi.algorithm import get_display
 # =====================
 # إعداد الصفحة
 # =====================
-st.set_page_config(
-    page_title="Math AI",
-    layout="wide"
-)
-
+st.set_page_config(page_title="Math AI", layout="wide")
 st.title("🧮 Math AI – مساعد الرياضيات التعليمي")
 
 x = symbols("x")
 
 # =====================
-# دالة تصحيح النص العربي للرسم
+# دالة تصحيح العربية للرسم
 # =====================
 def arabic_text(text):
     reshaped = arabic_reshaper.reshape(text)
@@ -37,7 +33,7 @@ def convert_math_to_python(text):
     return text
 
 # =====================
-# التبويبات
+# Tabs
 # =====================
 tab1, tab2, tab3 = st.tabs([
     "🔢 العمليات الحسابية",
@@ -54,10 +50,7 @@ with tab1:
     a = st.number_input("العدد الأول", value=0.0)
     b = st.number_input("العدد الثاني", value=0.0)
 
-    operation = st.selectbox(
-        "اختر العملية",
-        ["جمع", "طرح", "ضرب", "قسمة"]
-    )
+    operation = st.selectbox("اختر العملية", ["جمع", "طرح", "ضرب", "قسمة"])
 
     if st.button("احسب"):
         if operation == "قسمة" and b == 0:
@@ -69,47 +62,40 @@ with tab1:
                 "ضرب": a * b,
                 "قسمة": a / b
             }[operation]
-
             st.success(f"✅ النتيجة = {result}")
 
 # ------------------------------------------------
-# Tab 2: حل المعادلات خطوة بخطوة
+# Tab 2: حل المعادلات
 # ------------------------------------------------
 with tab2:
     st.header("📐 حل المعادلات خطوة بخطوة")
 
-    eq_input = st.text_input(
-        "أدخل المعادلة (مثال: x^2-4x+3=0)"
-    )
+    eq_input = st.text_input("أدخل المعادلة (مثال: x^2-4x+3=0)")
 
     if st.button("حل المعادلة"):
         try:
             if "=" not in eq_input:
                 st.error("❌ يجب أن تحتوي المعادلة على =")
             else:
-                # الخطوة 1
                 st.subheader("🔹 الخطوة 1: المعادلة الأصلية")
                 st.write(eq_input)
 
-                # الخطوة 2
                 python_eq = convert_math_to_python(eq_input)
                 st.subheader("🔹 الخطوة 2: تحويل الصيغة")
                 st.code(python_eq)
 
-                # الخطوة 3
                 left, right = python_eq.split("=")
                 equation = Eq(sympify(left), sympify(right))
+
                 st.subheader("🔹 الخطوة 3: تمثيل المعادلة رياضيًا")
                 st.latex(latex(equation))
 
-                # الخطوة 4
-                expanded_eq = expand(equation.lhs - equation.rhs)
+                simplified = expand(equation.lhs - equation.rhs)
                 st.subheader("🔹 الخطوة 4: تبسيط المعادلة")
-                st.latex(f"{latex(expanded_eq)} = 0")
+                st.latex(f"{latex(simplified)} = 0")
 
-                # الخطوة 5
                 solutions = solve(equation, x)
-                st.subheader("🔹 الخطوة 5: إيجاد الحلول")
+                st.subheader("🔹 الخطوة 5: الحلول")
 
                 if not solutions:
                     st.warning("⚠ لا يوجد حلول حقيقية")
@@ -118,26 +104,26 @@ with tab2:
                         st.latex(f"x_{i} = {latex(sol)}")
 
         except Exception as e:
-            st.error(f"❌ حدث خطأ: {e}")
+            st.error(f"❌ خطأ: {e}")
 
 # ------------------------------------------------
-# Tab 3: رسم الدوال
+# Tab 3: رسم الدوال (✔ تم الإصلاح)
 # ------------------------------------------------
 with tab3:
     st.header("📊 رسم الدوال")
 
-    func_text = st.text_input(
-        "أدخل الدالة (مثال: x^2-4x+3)"
-    )
+    func_text = st.text_input("أدخل الدالة (مثال: x^2-4x+3)")
 
-    if st.button("ارسم الدالة"):
+    if st.button("ارسم"):
         try:
             func_python = convert_math_to_python(func_text)
             f_sym = sympify(func_python)
-            f = lambda x_val: eval(func_python)
+
+            # ✔ الحل الصحيح هنا
+            f = lambdify(x, f_sym, "numpy")
 
             xs = np.linspace(-10, 10, 400)
-            ys = [f(val) for val in xs]
+            ys = f(xs)
 
             roots = solve(Eq(f_sym, 0), x)
             roots_real = []
