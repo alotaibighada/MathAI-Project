@@ -3,128 +3,28 @@ from sympy import symbols, Eq, solve, sympify, latex, expand, sqrt
 import numpy as np
 import matplotlib.pyplot as plt
 import re
+import arabic_reshaper
+from bidi.algorithm import get_display
 
 # =====================
 # إعداد الصفحة
 # =====================
-st.set_page_config(
-    page_title="Math AI – مساعد الرياضيات التعليمي",
-    layout="wide"
-)
+st.set_page_config(page_title="Math AI", layout="wide")
+st.title("🧮 Math AI – مساعد الرياضيات التعليمي")
+st.caption("✦ معلمة مبدعة للجميع ✦")
 
-# =====================
-# تحسين الواجهة (CSS)
-# =====================
-st.markdown("""
-<style>
-
-/* اتجاه عربي وخط */
-html, body, [class*="css"]  {
-    direction: rtl;
-    font-family: 'Tahoma', 'Arial';
-}
-
-/* الخلفية */
-.stApp {
-    background-color: #f4f8fb;
-}
-
-/* العناوين */
-h1, h2, h3, h4 {
-    text-align: center;
-    color: #2C3E50;
-}
-
-/* كرت المحتوى */
-.block-container {
-    background-color: #ffffff;
-    padding: 2rem;
-    border-radius: 18px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
-}
-
-/* الأزرار */
-.stButton > button {
-    background: linear-gradient(90deg, #4CAF50, #2ECC71);
-    color: white;
-    border-radius: 14px;
-    height: 3em;
-    font-size: 18px;
-    font-weight: bold;
-    border: none;
-    transition: 0.3s;
-}
-
-.stButton > button:hover {
-    transform: scale(1.03);
-    background: linear-gradient(90deg, #43A047, #27AE60);
-}
-
-/* الإدخالات */
-.stTextInput input,
-.stNumberInput input {
-    border-radius: 12px;
-    padding: 10px;
-    border: 1px solid #dfe6e9;
-}
-
-/* الراديو */
-.stRadio > div {
-    background-color: #f7fdf9;
-    padding: 15px;
-    border-radius: 14px;
-    border: 1px solid #e0f2e9;
-}
-
-/* الرسائل */
-.stSuccess {
-    background-color: #eafaf1;
-    border-right: 6px solid #2ecc71;
-}
-
-.stError {
-    background-color: #fdecea;
-    border-right: 6px solid #e74c3c;
-}
-
-.stInfo {
-    background-color: #eaf2fb;
-    border-right: 6px solid #3498db;
-}
-
-.stWarning {
-    background-color: #fff4e5;
-    border-right: 6px solid #f39c12;
-}
-
-/* التبويبات */
-.stTabs [role="tab"] {
-    font-size: 18px;
-    padding: 10px 25px;
-}
-
-.stTabs [aria-selected="true"] {
-    background-color: #4CAF50;
-    color: white;
-    border-radius: 10px;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# =====================
-# العنوان
-# =====================
-st.markdown("<h1>🧮 Math AI</h1>", unsafe_allow_html=True)
-st.markdown("<h4>مساعد الرياضيات التعليمي</h4>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;color:#4CAF50;'>معلمة مبدعة للجميع</p>", unsafe_allow_html=True)
-st.markdown("---")
-
-# =====================
-# أدوات
-# =====================
 x = symbols("x")
 
+# =====================
+# دالة تصحيح العربية للرسم
+# =====================
+def arabic_text(text):
+    reshaped = arabic_reshaper.reshape(text)
+    return get_display(reshaped)
+
+# =====================
+# تحويل الصيغة الرياضية
+# =====================
 def convert_math_to_python(text):
     text = text.replace(" ", "")
     text = text.replace("^", "**")
@@ -142,14 +42,13 @@ tab1, tab2, tab3 = st.tabs([
 ])
 
 # ------------------------------------------------
-# Tab 1: العمليات الحسابية
+# Tab 1
 # ------------------------------------------------
 with tab1:
     st.header("🔢 العمليات الحسابية")
 
     a = st.number_input("العدد الأول", value=0.0)
     b = st.number_input("العدد الثاني", value=0.0)
-
     operation = st.selectbox("اختر العملية", ["جمع", "طرح", "ضرب", "قسمة"])
 
     if st.button("احسب"):
@@ -165,7 +64,7 @@ with tab1:
             st.success(f"✅ النتيجة = {result}")
 
 # ------------------------------------------------
-# Tab 2: حل المعادلات
+# Tab 2: النسخة التعليمية المتقدمة
 # ------------------------------------------------
 with tab2:
     st.header("📐 حل المعادلات التربيعية خطوة بخطوة")
@@ -181,18 +80,27 @@ with tab2:
             if "=" not in eq_input:
                 st.error("❌ يجب أن تحتوي المعادلة على =")
             else:
+                # الخطوة 1
                 st.subheader("🔹 الخطوة 1: المعادلة المعطاة")
                 st.write(eq_input)
 
                 python_eq = convert_math_to_python(eq_input)
                 left, right = python_eq.split("=")
                 equation = Eq(sympify(left), sympify(right))
+
                 simplified = expand(equation.lhs - equation.rhs)
 
-                st.subheader("🔹 الخطوة 2: الصورة العامة")
+                # الخطوة 2
+                st.subheader("🔹 الخطوة 2: تحديد نوع المعادلة")
+                degree = simplified.as_poly(x).degree()
+                st.success("✔ معادلة تربيعية" if degree == 2 else "معادلة غير تربيعية")
+
+                # الخطوة 3
+                st.subheader("🔹 الخطوة 3: الصورة العامة")
                 st.latex(f"{latex(simplified)} = 0")
 
                 a, b, c = simplified.as_poly(x).all_coeffs()
+
                 st.markdown(f"""
                 **المعاملات:**
                 - a = {a}
@@ -200,9 +108,15 @@ with tab2:
                 - c = {c}
                 """)
 
-                st.subheader("🔹 الخطوة 3: الحل")
+                # الخطوة 4: طريقة الحل
+                st.subheader("🔹 الخطوة 4: الحل")
 
-                if method == "القانون العام":
+                if method == "التحليل":
+                    st.info("نستخدم التحليل إذا أمكن تفكيك المعادلة بسهولة")
+                    solutions = solve(simplified, x)
+
+                elif method == "القانون العام":
+                    st.info("نستخدم القانون العام عندما يصعب التحليل")
                     D = b**2 - 4*a*c
                     st.latex(r"\Delta = b^2 - 4ac")
                     st.latex(f"\\Delta = {latex(D)}")
@@ -210,20 +124,36 @@ with tab2:
                         (-b + sqrt(D)) / (2*a),
                         (-b - sqrt(D)) / (2*a)
                     ]
+
                 else:
+                    st.info("يتم الحل باستخدام أداة رياضية ذكية")
                     solutions = solve(simplified, x)
 
-                st.subheader("🔹 الخطوة 4: الحلول")
+                # الخطوة 5
+                st.subheader("🔹 الخطوة 5: الحلول")
                 for i, sol in enumerate(solutions, start=1):
                     st.latex(f"x_{i} = {latex(sol)}")
 
-                st.success("✔ تم التحقق من الحل بالتعويض")
+                # التحقق
+                st.subheader("✅ التحقق من الحل")
+                st.markdown("بالتعويض في المعادلة الأصلية نحصل على صفر ✔")
+
+                # التفكير الرياضي
+                st.subheader("🧠 فكّر")
+                st.markdown("""
+                - لماذا اخترنا هذه الطريقة؟
+                - هل توجد طريقة أخرى؟
+                - متى يكون القانون العام هو الخيار الأفضل؟
+                """)
+
+                # ملخص
+                st.success("🎉 أحسنت! تعلمت اليوم كيفية حل معادلة تربيعية بطرق مختلفة")
 
         except Exception as e:
             st.error(f"❌ خطأ: {e}")
 
 # ------------------------------------------------
-# Tab 3: رسم الدوال
+# Tab 3
 # ------------------------------------------------
 with tab3:
     st.header("📊 رسم الدوال")
@@ -235,14 +165,19 @@ with tab3:
             func_python = convert_math_to_python(func_text)
             f_sym = sympify(func_python)
 
+            f = lambda x_val: np.array([f_sym.subs(x, i) for i in x_val], dtype=float)
             xs = np.linspace(-10, 10, 400)
-            ys = [f_sym.subs(x, i) for i in xs]
+            ys = f(xs)
 
             fig, ax = plt.subplots()
             ax.plot(xs, ys)
             ax.axhline(0)
             ax.axvline(0)
             ax.grid(True)
+
+            ax.set_title(arabic_text(f"رسم الدالة: {func_text}"))
+            ax.set_xlabel(arabic_text("س"))
+            ax.set_ylabel(arabic_text("ص"))
 
             st.pyplot(fig)
 
