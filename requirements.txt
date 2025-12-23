@@ -4,3 +4,4 @@ numpy
 matplotlib
 gTTS
 arabic_reshaper
+get_display
