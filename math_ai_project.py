@@ -4,26 +4,34 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import re
-import arabic_reshaper
-from bidi.algorithm import get_display
 
 # =====================
-# إعداد الخط العربي
+# إعداد الخط في Matplotlib
 # =====================
-rcParams['font.family'] = 'DejaVu Sans'
+rcParams['font.family'] = 'Arial'
 rcParams['axes.unicode_minus'] = False
 
 # =====================
 # إعداد الصفحة
 # =====================
 st.set_page_config(page_title="Math AI Project", layout="wide")
-st.title("🧮 مشروع Math AI – شرح تفصيلي لحل المعادلات")
+
+# =====================
+# شعار المشروع
+# =====================
+st.image("logo.png", width=180)
+st.markdown("<h2 style='text-align:center;'>Math AI</h2>", unsafe_allow_html=True)
+st.markdown(
+    "<p style='text-align:center; color:gray;'>مساعد ذكي لتعلم الرياضيات</p>",
+    unsafe_allow_html=True
+)
+st.divider()
 
 x = symbols("x")
 mode = st.radio("اختر وضع الاستخدام:", ["👩‍🎓 وضع تعليمي", "👩‍🔬 وضع متقدم"])
 
 # =====================
-# دوال مساعدة
+# تحويل الصيغة الرياضية
 # =====================
 def convert_math_to_python(text):
     text = text.replace(" ", "")
@@ -34,15 +42,12 @@ def convert_math_to_python(text):
     text = re.sub(r'\)\(', r')*(', text)
     return text
 
-def arabic_text(text):
-    return get_display(arabic_reshaper.reshape(text))
-
 # =====================
 # Tabs
 # =====================
 tab1, tab2, tab3 = st.tabs([
     "🔢 العمليات الحسابية",
-    "📐 حل المعادلات (شرح تفصيلي)",
+    "📐 حل المعادلات",
     "📊 رسم الدوال"
 ])
 
@@ -51,7 +56,6 @@ tab1, tab2, tab3 = st.tabs([
 # ------------------------------------------------
 with tab1:
     st.header("🔢 العمليات الحسابية")
-
     a = st.number_input("الرقم الأول", value=0.0)
     b = st.number_input("الرقم الثاني", value=0.0)
     op = st.selectbox("العملية", ["جمع", "طرح", "ضرب", "قسمة"])
@@ -69,74 +73,42 @@ with tab1:
             st.success(f"✅ النتيجة = {result}")
 
 # ------------------------------------------------
-# Tab 2: حل المعادلات (شرح تفصيلي)
+# Tab 2: حل المعادلات مع الشرح
 # ------------------------------------------------
 with tab2:
-    st.header("📐 حل المعادلات خطوة بخطوة (شرح تفصيلي)")
-
-    eq_input = st.text_input("أدخل المعادلة (مثال: x^2-4x+3 = 0)")
+    st.header("📐 حل المعادلات خطوة بخطوة")
+    eq_input = st.text_input("أدخل المعادلة (مثال: x^2-4x+3=0)")
 
     if st.button("حل المعادلة"):
-        if "=" not in eq_input:
-            st.error("❌ يجب أن تحتوي المعادلة على علامة =")
-        else:
-            try:
-                # 1️⃣ تحويل الصيغة
+        try:
+            if "=" not in eq_input:
+                st.error("❌ يجب أن تحتوي المعادلة على =")
+            else:
                 eq_text = convert_math_to_python(eq_input)
                 left, right = eq_text.split("=")
-
-                # 2️⃣ تكوين المعادلة
                 equation = Eq(sympify(left), sympify(right))
-                moved_eq = sympify(left) - sympify(right)
-
-                # 3️⃣ تحديد نوع المعادلة
-                degree = moved_eq.as_poly(x).degree()
-
                 solutions = solve(equation, x)
 
-                # =====================
-                # الشرح التفصيلي
-                # =====================
-                st.subheader("🧠 شرح خطوات الحل")
+                if mode == "👩‍🎓 وضع تعليمي":
+                    st.subheader("🔍 خطوات الحل")
+                    st.markdown(f"**1️⃣ المعادلة المدخلة:** `{eq_input}`")
+                    st.markdown(f"**2️⃣ بعد التحويل البرمجي:** `{eq_text}`")
+                    st.markdown("**3️⃣ نقل جميع الحدود لطرف واحد:**")
+                    st.latex(latex(equation))
+                    st.markdown("**4️⃣ حل المعادلة:**")
 
-                st.markdown("### ① كتابة المعادلة")
-                st.write(f"المعادلة المدخلة هي:")
-                st.latex(eq_input)
-
-                st.markdown("### ② تحويل المعادلة إلى صيغة مناسبة")
-                st.write("نحوّل المعادلة إلى صيغة يستطيع البرنامج التعامل معها:")
-                st.code(eq_text)
-
-                st.markdown("### ③ نقل جميع الحدود إلى طرف واحد")
-                st.write("نطرح الطرف الأيمن من الطرف الأيسر للحصول على صفر:")
-                st.latex(Eq(moved_eq, 0))
-
-                st.markdown("### ④ تحديد نوع المعادلة")
-                if degree == 1:
-                    st.write("هذه **معادلة خطية من الدرجة الأولى**.")
-                elif degree == 2:
-                    st.write("هذه **معادلة تربيعية من الدرجة الثانية**.")
-                else:
-                    st.write("هذه معادلة من درجة أعلى.")
-
-                st.markdown("### ⑤ حل المعادلة")
-                st.write("نقوم بحل المعادلة لإيجاد قيمة المتغير x.")
-
+                st.subheader("✅ الحل النهائي")
                 for s in solutions:
                     st.latex(f"x = {latex(s)}")
 
-                st.markdown("### ✅ الحل النهائي")
-                st.success(f"قيم x التي تحقق المعادلة هي: {solutions}")
-
-            except Exception as e:
-                st.error(f"❌ حدث خطأ أثناء الحل: {e}")
+        except Exception as e:
+            st.error(f"❌ خطأ في المعادلة: {e}")
 
 # ------------------------------------------------
 # Tab 3: رسم الدوال
 # ------------------------------------------------
 with tab3:
     st.header("📊 رسم الدوال")
-
     func_text = st.text_input("أدخل الدالة (مثال: x^2-4x+3)")
 
     if st.button("ارسم الدالة"):
@@ -145,7 +117,12 @@ with tab3:
             f = lambdify(x, f_sym, "numpy")
 
             roots = solve(Eq(f_sym, 0), x)
-            real_roots = [float(r) for r in roots if r.is_real]
+            real_roots = []
+            for r in roots:
+                try:
+                    real_roots.append(float(r))
+                except:
+                    pass
 
             x_min = min(real_roots) - 5 if real_roots else -10
             x_max = max(real_roots) + 5 if real_roots else 10
@@ -154,20 +131,20 @@ with tab3:
             ys = f(xs)
 
             fig, ax = plt.subplots()
-            ax.plot(xs, ys, linewidth=2, label=arabic_text("الدالة"))
+            ax.plot(xs, ys, linewidth=2)
             ax.axhline(0, color="black")
             ax.axvline(0, color="black")
             ax.grid(True, linestyle="--", alpha=0.7)
 
             for r in real_roots:
-                ax.plot(r, 0, 'ro')
-                ax.text(r, 0, f"{r}", fontsize=9)
+                ax.plot(r, 0, "ro")
 
-            ax.set_title(arabic_text(f"رسم الدالة: {func_text}"))
-            ax.set_xlabel(arabic_text("س"))
-            ax.set_ylabel(arabic_text("ص"))
-            ax.legend()
+            ax.set_title(f"رسم الدالة: {func_text}")
+            ax.set_xlabel("x")
+            ax.set_ylabel("y")
+            fig.tight_layout()
+
             st.pyplot(fig)
 
         except Exception as e:
-            st.error(f"❌ خطأ في الرسم: {e}")
+            st.error(f"❌ خطأ في الدالة: {e}")
