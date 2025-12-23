@@ -1,5 +1,6 @@
-streamlit
+arabic-reshaper
+python-bidi
 sympy
 numpy
 matplotlib
-gTTS
+streamlit
