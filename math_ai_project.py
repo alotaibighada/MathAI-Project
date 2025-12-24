@@ -3,34 +3,17 @@ from sympy import symbols, Eq, solve, sympify, latex, expand, sqrt, lambdify
 import numpy as np
 import matplotlib.pyplot as plt
 import re
-from PIL import Image
 
 # =====================
-# إعداد الصفحة + الشعار
+# إعداد الصفحة
 # =====================
-# أولًا نحاول فتح الصورة للتحقق من وجودها
-image_path = "logo.png"  # ضع هنا مسار الصورة الصحيح
-
-try:
-    img = Image.open(image_path)
-    image_exists = True
-except FileNotFoundError:
-    st.warning(f"⚠ لم يتم العثور على الصورة في المسار: {image_path}")
-    image_exists = False
-
-# إعداد الصفحة مع استخدام الأيقونة إذا الصورة موجودة
 st.set_page_config(
     page_title="Math AI",
-    page_icon=image_path if image_exists else "🧮",
     layout="wide"
 )
 
-# عرض الصورة أعلى الصفحة داخل التطبيق
-if image_exists:
-    st.image(img, width=100)
-
 st.title("🧮 Math AI")
-st.caption("✦  ✦")
+st.markdown("مرحبًا بك في أداة **Math AI** لحل المعادلات ورسم الدوال!")
 
 x = symbols("x")
 
@@ -58,6 +41,7 @@ tab1, tab2, tab3 = st.tabs([
 # ------------------------------------------------
 with tab1:
     st.header("🔢 العمليات الحسابية")
+    st.markdown("اختر الأعداد و العملية الحسابية ثم اضغط **احسب**:")
 
     a_num = st.number_input("العدد الأول", value=0.0)
     b_num = st.number_input("العدد الثاني", value=0.0)
@@ -80,8 +64,9 @@ with tab1:
 # ------------------------------------------------
 with tab2:
     st.header("📐 حل المعادلات التربيعية خطوة بخطوة")
+    st.markdown("أدخل المعادلة على شكل `x^2-4x+3=0` واختر طريقة الحل:")
 
-    eq_input = st.text_input("أدخل المعادلة (مثال: x^2-4x+3=0)")
+    eq_input = st.text_input("أدخل المعادلة")
     method = st.radio(
         "اختر طريقة الحل:",
         ["التحليل", "القانون العام", "حل تلقائي"]
@@ -147,8 +132,9 @@ with tab2:
 # ------------------------------------------------
 with tab3:
     st.header("📊 رسم الدوال")
+    st.markdown("أدخل الدالة على شكل `x^2-4x+3` ثم اضغط **ارسم**:")
 
-    func_text = st.text_input("أدخل الدالة (مثال: x^2-4x+3)")
+    func_text = st.text_input("أدخل الدالة")
 
     if st.button("ارسم", key="plot_btn"):
         try:
@@ -162,15 +148,15 @@ with tab3:
                 xs = np.linspace(-10, 10, 400)
                 ys = np.array([f(val) for val in xs])
 
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(7,5))
                 ax.plot(xs, ys, 'b', linewidth=2)
                 ax.axhline(0, color='black', linewidth=1)
                 ax.axvline(0, color='black', linewidth=1)
                 ax.grid(True, linestyle='--', alpha=0.7)
 
-                ax.set_title(f"{func_text}")
-                ax.set_xlabel("x")
-                ax.set_ylabel("y")
+                ax.set_title(f"رسم الدالة: {func_text}", fontsize=14)
+                ax.set_xlabel("x", fontsize=12)
+                ax.set_ylabel("y", fontsize=12)
 
                 st.pyplot(fig)
 
