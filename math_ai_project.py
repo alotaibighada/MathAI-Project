@@ -9,6 +9,9 @@ import re
 # إعداد الصفحة
 # =====================
 st.set_page_config(page_title="Math AI", layout="wide")
+logo = Image.open("assets/logo.png")
+st.sidebar.image(logo, width=180)
+
 st.title("🧮 Math AI")
 st.caption("✦  ✦")
 
