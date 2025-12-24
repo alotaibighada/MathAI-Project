@@ -1,3 +1,4 @@
+from PIL import Image
 import streamlit as st
 from sympy import symbols, Eq, solve, sympify, latex, expand, sqrt, lambdify
 import numpy as np
