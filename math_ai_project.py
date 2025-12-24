@@ -12,8 +12,8 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🧮 Math AI")
-st.markdown("مرحبًا بك في أداة **Math AI** لحل المعادلات ورسم الدوال!")
+st.markdown("<h1 style='text-align:center; color:#4B0082;'>🧮 Math AI – أداة رياضية ذكية</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#6A5ACD;'>حل المعادلات، العمليات الحسابية، ورسم الدوال بسهولة</p>", unsafe_allow_html=True)
 
 x = symbols("x")
 
@@ -40,31 +40,31 @@ tab1, tab2, tab3 = st.tabs([
 # Tab 1: العمليات الحسابية
 # ------------------------------------------------
 with tab1:
-    st.header("🔢 العمليات الحسابية")
-    st.markdown("اختر الأعداد و العملية الحسابية ثم اضغط **احسب**:")
+    st.markdown("<h2 style='color:#1E90FF;'>🔢 العمليات الحسابية</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#555;'>اختر الأعداد والعملية الحسابية، ثم اضغط <b>احسب</b>:</p>", unsafe_allow_html=True)
 
     a_num = st.number_input("العدد الأول", value=0.0)
     b_num = st.number_input("العدد الثاني", value=0.0)
-    operation = st.selectbox("اختر العملية", ["جمع", "طرح", "ضرب", "قسمة"])
+    operation = st.selectbox("اختر العملية", ["جمع 🟢", "طرح 🔴", "ضرب ✖️", "قسمة ➗"])
 
     if st.button("احسب", key="calc_btn"):
-        if operation == "قسمة" and b_num == 0:
+        if operation.startswith("قسمة") and b_num == 0:
             st.error("❌ لا يمكن القسمة على صفر")
         else:
             result = {
-                "جمع": a_num + b_num,
-                "طرح": a_num - b_num,
-                "ضرب": a_num * b_num,
-                "قسمة": a_num / b_num
+                "جمع 🟢": a_num + b_num,
+                "طرح 🔴": a_num - b_num,
+                "ضرب ✖️": a_num * b_num,
+                "قسمة ➗": a_num / b_num
             }[operation]
-            st.success(f"✅ النتيجة = {result}")
+            st.markdown(f"<span style='color:#FF4500; font-weight:bold;'>✅ النتيجة = {result}</span>", unsafe_allow_html=True)
 
 # ------------------------------------------------
 # Tab 2: حل المعادلات
 # ------------------------------------------------
 with tab2:
-    st.header("📐 حل المعادلات التربيعية خطوة بخطوة")
-    st.markdown("أدخل المعادلة على شكل `x^2-4x+3=0` واختر طريقة الحل:")
+    st.markdown("<h2 style='color:#32CD32;'>📐 حل المعادلات التربيعية</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#555;'>أدخل المعادلة على شكل <b>x^2-4x+3=0</b> واختر طريقة الحل:</p>", unsafe_allow_html=True)
 
     eq_input = st.text_input("أدخل المعادلة")
     method = st.radio(
@@ -77,7 +77,7 @@ with tab2:
             if "=" not in eq_input:
                 st.error("❌ يجب أن تحتوي المعادلة على =")
             else:
-                st.subheader("1️⃣ المعادلة المعطاة")
+                st.markdown("<h4 style='color:#4B0082;'>1️⃣ المعادلة المعطاة</h4>", unsafe_allow_html=True)
                 st.write(eq_input)
 
                 python_eq = convert_math_to_python(eq_input)
@@ -85,7 +85,7 @@ with tab2:
                 equation = Eq(sympify(left), sympify(right))
                 simplified = expand(equation.lhs - equation.rhs)
 
-                st.subheader("2️⃣ الصورة العامة")
+                st.markdown("<h4 style='color:#4B0082;'>2️⃣ الصورة العامة</h4>", unsafe_allow_html=True)
                 st.latex(f"{latex(simplified)} = 0")
 
                 poly = simplified.as_poly(x)
@@ -93,19 +93,21 @@ with tab2:
                 if poly is None or poly.degree() != 2:
                     st.warning("⚠ هذه المعادلة ليست تربيعية")
                 else:
-                    # استخراج المعاملات بأمان
+                    # استخراج المعاملات
                     a = poly.coeff_monomial(x**2)
                     b = poly.coeff_monomial(x)
                     c = poly.coeff_monomial(1)
 
                     st.markdown(f"""
+                    <p style='color:#6A5ACD; font-weight:bold;'>
                     **المعاملات**
-                    - a = {a}
-                    - b = {b}
-                    - c = {c}
-                    """)
+                    - a = {a}  
+                    - b = {b}  
+                    - c = {c}  
+                    </p>
+                    """, unsafe_allow_html=True)
 
-                    st.subheader("3️⃣ الحل")
+                    st.markdown("<h4 style='color:#32CD32;'>3️⃣ الحل</h4>", unsafe_allow_html=True)
 
                     if method == "القانون العام":
                         D = b**2 - 4*a*c
@@ -118,9 +120,9 @@ with tab2:
                     else:
                         solutions = solve(simplified, x)
 
-                    st.subheader("4️⃣ الحلول")
+                    st.markdown("<h4 style='color:#32CD32;'>4️⃣ الحلول</h4>", unsafe_allow_html=True)
                     for i, sol in enumerate(solutions, 1):
-                        st.latex(f"x_{i} = {latex(sol)}")
+                        st.markdown(f"<span style='color:#FF6347; font-weight:bold;'>x_{i} = {latex(sol)}</span>", unsafe_allow_html=True)
 
                     st.success("✔ تم حل المعادلة بنجاح")
 
@@ -131,8 +133,8 @@ with tab2:
 # Tab 3: رسم الدوال
 # ------------------------------------------------
 with tab3:
-    st.header("📊 رسم الدوال")
-    st.markdown("أدخل الدالة على شكل `x^2-4x+3` ثم اضغط **ارسم**:")
+    st.markdown("<h2 style='color:#FF8C00;'>📊 رسم الدوال</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#555;'>أدخل الدالة على شكل <b>x^2-4x+3</b> ثم اضغط <b>ارسم</b>:</p>", unsafe_allow_html=True)
 
     func_text = st.text_input("أدخل الدالة")
 
@@ -149,14 +151,15 @@ with tab3:
                 ys = np.array([f(val) for val in xs])
 
                 fig, ax = plt.subplots(figsize=(7,5))
-                ax.plot(xs, ys, 'b', linewidth=2)
+                ax.plot(xs, ys, color="#FF6347", linewidth=2, label="الدالة")
                 ax.axhline(0, color='black', linewidth=1)
                 ax.axvline(0, color='black', linewidth=1)
+                ax.set_facecolor("#F5F5F5")
                 ax.grid(True, linestyle='--', alpha=0.7)
-
-                ax.set_title(f"رسم الدالة: {func_text}", fontsize=14)
+                ax.set_title(f"رسم الدالة: {func_text}", fontsize=14, color="#4B0082")
                 ax.set_xlabel("x", fontsize=12)
                 ax.set_ylabel("y", fontsize=12)
+                ax.legend()
 
                 st.pyplot(fig)
 
