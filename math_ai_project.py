@@ -1,5 +1,5 @@
 import streamlit as st
-from sympy import symbols, Eq, solve, sympify, latex, expand, factor
+from sympy import symbols, solve, sympify, latex, expand, factor
 import numpy as np
 import matplotlib.pyplot as plt
 import re
@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # =====================
-# Header
+# Header (نفسه بدون تغيير)
 # =====================
 st.markdown(
     """
@@ -52,7 +52,7 @@ tab1, tab2, tab3 = st.tabs([
 ])
 
 # ------------------------------------------------
-# Tab 1: العمليات الحسابية
+# Tab 1: العمليات الحسابية (كما هي)
 # ------------------------------------------------
 with tab1:
     st.markdown("<h2 style='color:#1E90FF;'>🔢 العمليات الحسابية</h2>", unsafe_allow_html=True)
@@ -74,12 +74,19 @@ with tab1:
             st.write(f"✅ النتيجة = {result}")
 
 # ------------------------------------------------
-# Tab 2: حل المعادلات (3 طرق)
+# Tab 2: حل المعادلات (اختيار بالأيقونات)
 # ------------------------------------------------
 with tab2:
     st.markdown("<h2 style='color:#32CD32;'>📐 حل المعادلات التربيعية</h2>", unsafe_allow_html=True)
 
     eq_input = st.text_input("أدخل المعادلة على شكل x^2-4x+3=0")
+
+    # 🔹 اختيار طريقة الحل بالأيقونات
+    method = st.radio(
+        "اختر طريقة الحل:",
+        ["🧩 التحليل", "📐 القانون العام", "🤖 الحل المباشر"],
+        horizontal=True
+    )
 
     if st.button("حل المعادلة", key="solve_btn"):
         try:
@@ -97,47 +104,44 @@ with tab2:
                 b = expr.coeff(x, 1)
                 c = expr.coeff(x, 0)
 
-                # =====================
-                # 1️⃣ الحل بالتحليل
-                # =====================
-                st.markdown("## ① الحل بالتحليل")
-                factored = factor(expr)
-                if factored != expr:
-                    st.latex(f"{latex(factored)} = 0")
-                    for sol in solve(factored, x):
+                # 🧩 الحل بالتحليل
+                if method == "🧩 التحليل":
+                    st.markdown("## 🧩 الحل بالتحليل")
+                    factored = factor(expr)
+                    if factored != expr:
+                        st.latex(f"{latex(factored)} = 0")
+                        for sol in solve(factored, x):
+                            st.latex(f"x = {latex(sol)}")
+                    else:
+                        st.warning("لا يمكن تحليل المعادلة")
+
+                # 📐 القانون العام
+                elif method == "📐 القانون العام":
+                    st.markdown("## 📐 الحل بالقانون العام")
+                    st.latex("x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}")
+
+                    delta = b**2 - 4*a*c
+                    st.latex(f"\\Delta = {latex(delta)}")
+
+                    if delta < 0:
+                        st.warning("لا يوجد حلول حقيقية")
+                    else:
+                        x1 = (-b + delta**0.5) / (2*a)
+                        x2 = (-b - delta**0.5) / (2*a)
+                        st.latex(f"x_1 = {latex(x1)}")
+                        st.latex(f"x_2 = {latex(x2)}")
+
+                # 🤖 الحل المباشر
+                elif method == "🤖 الحل المباشر":
+                    st.markdown("## 🤖 الحل المباشر")
+                    for sol in solve(expr, x):
                         st.latex(f"x = {latex(sol)}")
-                else:
-                    st.warning("لا يمكن تحليل المعادلة")
-
-                # =====================
-                # 2️⃣ الحل بالقانون العام
-                # =====================
-                st.markdown("## ② الحل بالقانون العام")
-                st.latex("x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}")
-
-                delta = b**2 - 4*a*c
-                st.latex(f"\\Delta = {latex(delta)}")
-
-                if delta < 0:
-                    st.warning("لا يوجد حلول حقيقية")
-                else:
-                    x1 = (-b + delta**0.5) / (2*a)
-                    x2 = (-b - delta**0.5) / (2*a)
-                    st.latex(f"x_1 = {latex(x1)}")
-                    st.latex(f"x_2 = {latex(x2)}")
-
-                # =====================
-                # 3️⃣ الحل المباشر
-                # =====================
-                st.markdown("## ③ الحل المباشر")
-                for sol in solve(expr, x):
-                    st.latex(f"x = {latex(sol)}")
 
         except Exception as e:
             st.error(f"❌ خطأ: {e}")
 
 # ------------------------------------------------
-# Tab 3: رسم الدوال
+# Tab 3: رسم الدوال (كما هو)
 # ------------------------------------------------
 with tab3:
     st.markdown("<h2 style='color:#FF8C00;'>📊 رسم الدوال</h2>", unsafe_allow_html=True)
@@ -164,7 +168,7 @@ with tab3:
             st.error(f"❌ خطأ في الرسم: {e}")
 
 # =====================
-# Footer
+# Footer (نفسه)
 # =====================
 st.markdown(
     """
