@@ -33,29 +33,29 @@ tab1, tab2, tab3 = st.tabs([
 ])
 
 # ------------------------------------------------
-# Tab 1
+# Tab 1: العمليات الحسابية
 # ------------------------------------------------
 with tab1:
     st.header("🔢 العمليات الحسابية")
 
-    a = st.number_input("العدد الأول", value=0.0)
-    b = st.number_input("العدد الثاني", value=0.0)
+    a_num = st.number_input("العدد الأول", value=0.0)
+    b_num = st.number_input("العدد الثاني", value=0.0)
     operation = st.selectbox("اختر العملية", ["جمع", "طرح", "ضرب", "قسمة"])
 
     if st.button("احسب"):
-        if operation == "قسمة" and b == 0:
+        if operation == "قسمة" and b_num == 0:
             st.error("❌ لا يمكن القسمة على صفر")
         else:
             result = {
-                "جمع": a + b,
-                "طرح": a - b,
-                "ضرب": a * b,
-                "قسمة": a / b
+                "جمع": a_num + b_num,
+                "طرح": a_num - b_num,
+                "ضرب": a_num * b_num,
+                "قسمة": a_num / b_num
             }[operation]
             st.success(f"✅ النتيجة = {result}")
 
 # ------------------------------------------------
-# Tab 2
+# Tab 2: حل المعادلات
 # ------------------------------------------------
 with tab2:
     st.header("📐 حل المعادلات التربيعية خطوة بخطوة")
@@ -71,7 +71,7 @@ with tab2:
             if "=" not in eq_input:
                 st.error("❌ يجب أن تحتوي المعادلة على =")
             else:
-                st.subheader("1️⃣ المعادلة")
+                st.subheader("1️⃣ المعادلة المعطاة")
                 st.write(eq_input)
 
                 python_eq = convert_math_to_python(eq_input)
@@ -83,10 +83,14 @@ with tab2:
                 st.latex(f"{latex(simplified)} = 0")
 
                 poly = simplified.as_poly(x)
-                if poly.degree() != 2:
-                    st.warning("⚠ المعادلة ليست تربيعية")
+
+                if poly is None or poly.degree() != 2:
+                    st.warning("⚠ هذه المعادلة ليست تربيعية")
                 else:
-                    a, b, c = poly.all_coeffs()
+                    # استخراج المعاملات بأمان
+                    a = poly.coeff_monomial(x**2)
+                    b = poly.coeff_monomial(x)
+                    c = poly.coeff_monomial(1)
 
                     st.markdown(f"""
                     **المعاملات**
@@ -118,7 +122,7 @@ with tab2:
             st.error(f"❌ خطأ: {e}")
 
 # ------------------------------------------------
-# Tab 3
+# Tab 3: رسم الدوال
 # ------------------------------------------------
 with tab3:
     st.header("📊 رسم الدوال")
