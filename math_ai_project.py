@@ -13,16 +13,22 @@ st.set_page_config(
 )
 
 # =====================
-# Header مع الشعار
+# Header مع خلفية تقنية
 # =====================
-col1, col2 = st.columns([1, 5])
-
-with col1:
-    st.image("logo.png", width=80)  # ضع هنا اسم ملف شعارك
-
-with col2:
-    st.markdown("<h1 style='color:#4B0082;'>🧮 Math AI – أداة رياضية ذكية</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#6A5ACD;'>حل المعادلات، العمليات الحسابية، ورسم الدوال بسهولة</p>", unsafe_allow_html=True)
+st.markdown(
+    """
+    <div style="
+        background: linear-gradient(135deg, #1E3C72, #2A5298);
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+    ">
+        <h1 style='color:#ffffff;'>🧮 Math AI – أداة رياضية ذكية</h1>
+        <p style='color:#C0C0C0;'>حل المعادلات، العمليات الحسابية، ورسم الدوال بسهولة</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 x = symbols("x")
 
