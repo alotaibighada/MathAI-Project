@@ -177,7 +177,7 @@ with tab3:
 st.markdown(
     """
     <div style="text-align:center;color:#888;font-size:14px;margin-top:30px;">
-        © 2025 Ghada Inc. | جميع الحقوق محفوظة
+        © 2025 Ghada alotaibi . | جميع الحقوق محفوظة
     </div>
     """,
     unsafe_allow_html=True
