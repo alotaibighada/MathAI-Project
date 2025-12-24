@@ -1,26 +1,17 @@
 import streamlit as st
-from sympy import symbols, Eq, solve, sympify, latex, expand, sqrt
+from sympy import symbols, Eq, solve, sympify, latex, expand, sqrt, lambdify
 import numpy as np
 import matplotlib.pyplot as plt
 import re
-import arabic_reshaper
-from bidi.algorithm import get_display
 
 # =====================
 # إعداد الصفحة
 # =====================
 st.set_page_config(page_title="Math AI", layout="wide")
 st.title("🧮 Math AI")
-st.caption("✦ مشروع تعليمي ✦")
+st.caption("✦ مشروع تعليمي ذكي ✦")
 
 x = symbols("x")
-
-# =====================
-# دالة تصحيح العربية للرسم
-# =====================
-def arabic_text(text):
-    reshaped = arabic_reshaper.reshape(text)
-    return get_display(reshaped)
 
 # =====================
 # تحويل الصيغة الرياضية
@@ -64,7 +55,7 @@ with tab1:
             st.success(f"✅ النتيجة = {result}")
 
 # ------------------------------------------------
-# Tab 2: النسخة التعليمية المتقدمة
+# Tab 2
 # ------------------------------------------------
 with tab2:
     st.header("📐 حل المعادلات التربيعية خطوة بخطوة")
@@ -72,7 +63,7 @@ with tab2:
     eq_input = st.text_input("أدخل المعادلة (مثال: x^2-4x+3=0)")
     method = st.radio(
         "اختر طريقة الحل:",
-        ["التحليل", "القانون العام", "حل جبري تلقائي"]
+        ["التحليل", "القانون العام", "حل تلقائي"]
     )
 
     if st.button("حل المعادلة"):
@@ -80,74 +71,48 @@ with tab2:
             if "=" not in eq_input:
                 st.error("❌ يجب أن تحتوي المعادلة على =")
             else:
-                # الخطوة 1
-                st.subheader("🔹 الخطوة 1: المعادلة المعطاة")
+                st.subheader("1️⃣ المعادلة")
                 st.write(eq_input)
 
                 python_eq = convert_math_to_python(eq_input)
                 left, right = python_eq.split("=")
                 equation = Eq(sympify(left), sympify(right))
-
                 simplified = expand(equation.lhs - equation.rhs)
 
-                # الخطوة 2
-                st.subheader("🔹 الخطوة 2: تحديد نوع المعادلة")
-                degree = simplified.as_poly(x).degree()
-                st.success("✔ معادلة تربيعية" if degree == 2 else "معادلة غير تربيعية")
-
-                # الخطوة 3
-                st.subheader("🔹 الخطوة 3: الصورة العامة")
+                st.subheader("2️⃣ الصورة العامة")
                 st.latex(f"{latex(simplified)} = 0")
 
-                a, b, c = simplified.as_poly(x).all_coeffs()
-
-                st.markdown(f"""
-                **المعاملات:**
-                - a = {a}
-                - b = {b}
-                - c = {c}
-                """)
-
-                # الخطوة 4: طريقة الحل
-                st.subheader("🔹 الخطوة 4: الحل")
-
-                if method == "التحليل":
-                    st.info("نستخدم التحليل إذا أمكن تفكيك المعادلة بسهولة")
-                    solutions = solve(simplified, x)
-
-                elif method == "القانون العام":
-                    st.info("نستخدم القانون العام عندما يصعب التحليل")
-                    D = b**2 - 4*a*c
-                    st.latex(r"\Delta = b^2 - 4ac")
-                    st.latex(f"\\Delta = {latex(D)}")
-                    solutions = [
-                        (-b + sqrt(D)) / (2*a),
-                        (-b - sqrt(D)) / (2*a)
-                    ]
-
+                poly = simplified.as_poly(x)
+                if poly.degree() != 2:
+                    st.warning("⚠ المعادلة ليست تربيعية")
                 else:
-                    st.info("يتم الحل باستخدام أداة رياضية ذكية")
-                    solutions = solve(simplified, x)
+                    a, b, c = poly.all_coeffs()
 
-                # الخطوة 5
-                st.subheader("🔹 الخطوة 5: الحلول")
-                for i, sol in enumerate(solutions, start=1):
-                    st.latex(f"x_{i} = {latex(sol)}")
+                    st.markdown(f"""
+                    **المعاملات**
+                    - a = {a}
+                    - b = {b}
+                    - c = {c}
+                    """)
 
-                # التحقق
-                st.subheader("✅ التحقق من الحل")
-                st.markdown("بالتعويض في المعادلة الأصلية نحصل على صفر ✔")
+                    st.subheader("3️⃣ الحل")
 
-                # التفكير الرياضي
-                st.subheader("🧠 فكّر")
-                st.markdown("""
-                - لماذا اخترنا هذه الطريقة؟
-                - هل توجد طريقة أخرى؟
-                - متى يكون القانون العام هو الخيار الأفضل؟
-                """)
+                    if method == "القانون العام":
+                        D = b**2 - 4*a*c
+                        st.latex(r"\Delta = b^2 - 4ac")
+                        st.latex(f"\\Delta = {latex(D)}")
+                        solutions = [
+                            (-b + sqrt(D)) / (2*a),
+                            (-b - sqrt(D)) / (2*a)
+                        ]
+                    else:
+                        solutions = solve(simplified, x)
 
-                # ملخص
-                st.success("🎉 أحسنت! تعلمت اليوم كيفية حل معادلة تربيعية بطرق مختلفة")
+                    st.subheader("4️⃣ الحلول")
+                    for i, sol in enumerate(solutions, 1):
+                        st.latex(f"x_{i} = {latex(sol)}")
+
+                    st.success("✔ تم حل المعادلة بنجاح")
 
         except Exception as e:
             st.error(f"❌ خطأ: {e}")
@@ -162,24 +127,27 @@ with tab3:
 
     if st.button("ارسم"):
         try:
-            func_python = convert_math_to_python(func_text)
-            f_sym = sympify(func_python)
+            if not func_text:
+                st.warning("⚠ أدخل دالة أولاً")
+            else:
+                func_python = convert_math_to_python(func_text)
+                f_sym = sympify(func_python)
 
-            f = lambda x_val: np.array([f_sym.subs(x, i) for i in x_val], dtype=float)
-            xs = np.linspace(-10, 10, 400)
-            ys = f(xs)
+                f = lambdify(x, f_sym, "numpy")
+                xs = np.linspace(-10, 10, 400)
+                ys = f(xs)
 
-            fig, ax = plt.subplots()
-            ax.plot(xs, ys)
-            ax.axhline(0)
-            ax.axvline(0)
-            ax.grid(True)
+                fig, ax = plt.subplots()
+                ax.plot(xs, ys, linewidth=2)
+                ax.axhline(0)
+                ax.axvline(0)
+                ax.grid(True)
 
-            ax.set_title(arabic_text(f"رسم الدالة: {func_text}"))
-            ax.set_xlabel(arabic_text("س"))
-            ax.set_ylabel(arabic_text("ص"))
+                ax.set_title(f"y = {func_text}")
+                ax.set_xlabel("x")
+                ax.set_ylabel("y")
 
-            st.pyplot(fig)
+                st.pyplot(fig)
 
         except Exception as e:
             st.error(f"❌ خطأ في الرسم: {e}")
