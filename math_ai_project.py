@@ -3,6 +3,7 @@ from sympy import symbols, Eq, solve, sympify, latex, expand, sqrt, lambdify
 import numpy as np
 import matplotlib.pyplot as plt
 import re
+import random
 
 # =====================
 # إعداد الصفحة
@@ -41,6 +42,16 @@ def convert_math_to_python(text):
     text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
     text = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', text)
     return text
+
+# =====================
+# عبارات تشجيعية
+# =====================
+encouragement_messages = [
+    "🎉 رائع! لقد تمكنت من حل المعادلة بنجاح. كل خطوة تقربك أكثر لفهم الرياضيات!",
+    "💡 تذكّر: دلتا (Δ) تحدد عدد الحلول الحقيقية للمعادلة التربيعية.",
+    "✨ ممتاز! كل عملية حسابية تتقنها تزيد من مهارتك الرياضية!",
+    "🧠 فهم المعادلات خطوة مهمة للوصول إلى حلول دقيقة ومبتكرة!",
+]
 
 # =====================
 # Tabs
@@ -139,6 +150,9 @@ with tab2:
                         st.markdown(f"<span style='color:#FF6347; font-weight:bold;'>x_{i} = {latex(sol)}</span>", unsafe_allow_html=True)
 
                     st.success("✔ تم حل المعادلة بنجاح")
+
+                    # عرض عبارة تشجيعية عشوائية
+                    st.info(random.choice(encouragement_messages))
 
         except Exception as e:
             st.error(f"❌ خطأ: {e}")
