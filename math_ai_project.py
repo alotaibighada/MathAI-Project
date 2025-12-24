@@ -12,8 +12,17 @@ st.set_page_config(
     layout="wide"
 )
 
-st.markdown("<h1 style='text-align:center; color:#4B0082;'>🧮 Math AI – أداة رياضية ذكية</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#6A5ACD;'>حل المعادلات، العمليات الحسابية، ورسم الدوال بسهولة</p>", unsafe_allow_html=True)
+# =====================
+# Header مع الشعار
+# =====================
+col1, col2 = st.columns([1, 5])
+
+with col1:
+    st.image("logo.png", width=80)  # ضع هنا اسم ملف شعارك
+
+with col2:
+    st.markdown("<h1 style='color:#4B0082;'>🧮 Math AI – أداة رياضية ذكية</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#6A5ACD;'>حل المعادلات، العمليات الحسابية، ورسم الدوال بسهولة</p>", unsafe_allow_html=True)
 
 x = symbols("x")
 
@@ -93,7 +102,6 @@ with tab2:
                 if poly is None or poly.degree() != 2:
                     st.warning("⚠ هذه المعادلة ليست تربيعية")
                 else:
-                    # استخراج المعاملات
                     a = poly.coeff_monomial(x**2)
                     b = poly.coeff_monomial(x)
                     c = poly.coeff_monomial(1)
