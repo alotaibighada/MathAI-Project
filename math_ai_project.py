@@ -128,13 +128,14 @@ with tab2:
             st.error(f"❌ خطأ: {e}")
 
 # ------------------------------------------------
-# Tab 3: رسم الدوال
+# Tab 3: رسم الدوال مع نقاط محددة فقط
 # ------------------------------------------------
 with tab3:
     st.markdown("<h2 style='color:#FF8C00;'>📊 رسم الدوال</h2>", unsafe_allow_html=True)
     st.markdown("<p style='color:#555;'>أدخل الدالة على شكل <b>x^2-4x+3</b> ثم اضغط <b>ارسم</b>:</p>", unsafe_allow_html=True)
 
     func_text = st.text_input("أدخل الدالة")
+    points_input = st.text_input("أدخل قيم x للنقاط المحددة (مفصولة بفواصل، مثال: -2,0,3)")
 
     if st.button("ارسم", key="plot_btn"):
         try:
@@ -143,8 +144,8 @@ with tab3:
             else:
                 func_python = convert_math_to_python(func_text)
                 f_sym = sympify(func_python)
-
                 f = lambdify(x, f_sym, "numpy")
+
                 xs = np.linspace(-10, 10, 400)
                 ys = np.array([f(val) for val in xs])
 
@@ -159,14 +160,14 @@ with tab3:
                 ax.set_ylabel("y", fontsize=12)
 
                 # =====================
-                # تحديد نقاط على المنحنى
+                # تحديد النقاط المختارة فقط
                 # =====================
-                num_points = 10  # عدد النقاط المراد تحديدها
-                xs_points = np.linspace(-10, 10, num_points)
-                ys_points = np.array([f(val) for val in xs_points])
-                ax.scatter(xs_points, ys_points, color="blue", s=50, zorder=5)  # رسم النقاط
-                for xp, yp in zip(xs_points, ys_points):
-                    ax.text(xp, yp, f"({xp:.2f},{yp:.2f})", fontsize=9, color="darkblue", ha='right', va='bottom')
+                if points_input.strip() != "":
+                    xs_points = [float(val.strip()) for val in points_input.split(",")]
+                    ys_points = [f(val) for val in xs_points]
+                    ax.scatter(xs_points, ys_points, color="blue", s=60, zorder=5)  # رسم النقاط
+                    for xp, yp in zip(xs_points, ys_points):
+                        ax.text(xp, yp, f"({xp},{yp:.2f})", fontsize=9, color="darkblue", ha='right', va='bottom')
 
                 ax.legend()
                 st.pyplot(fig)
