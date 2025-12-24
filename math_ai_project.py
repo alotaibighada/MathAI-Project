@@ -147,7 +147,7 @@ with tab3:
                 ax.axvline(0)
                 ax.grid(True)
 
-                ax.set_title(f"y = {func_text}")
+                ax.set_title(f"= {func_text}")
                 ax.set_xlabel("x")
                 ax.set_ylabel("y")
 
