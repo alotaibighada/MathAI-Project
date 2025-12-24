@@ -9,7 +9,7 @@ import re
 # =====================
 st.set_page_config(page_title="Math AI", layout="wide")
 st.title("🧮 Math AI")
-st.caption("✦ مشروع تعليمي ذكي ✦")
+st.caption("✦  ✦")
 
 x = symbols("x")
 
