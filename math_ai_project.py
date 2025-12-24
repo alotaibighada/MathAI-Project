@@ -165,3 +165,28 @@ with tab3:
 
         except Exception as e:
             st.error(f"❌ خطأ في الرسم: {e}")
+
+# =====================
+# Footer ثابت بحقوق الطبع والنشر
+# =====================
+st.markdown(
+    """
+    <style>
+    .footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 14px;
+        color: #888888;
+        background-color: #F5F5F5;
+        padding: 8px 0;
+        box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
+    }
+    </style>
+    <div class="footer">
+        © 2025 Ghada Inc. | جميع الحقوق محفوظة
+    </div>
+    """,
+    unsafe_allow_html=True
+)
