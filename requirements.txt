@@ -4,4 +4,3 @@ sympy
 numpy
 matplotlib
 streamlit
-Amiri-Regular.ttf
