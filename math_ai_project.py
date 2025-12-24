@@ -3,11 +3,24 @@ from sympy import symbols, Eq, solve, sympify, latex, expand, sqrt, lambdify
 import numpy as np
 import matplotlib.pyplot as plt
 import re
+from PIL import Image
 
 # =====================
-# إعداد الصفحة
+# إعداد الصفحة + الشعار
 # =====================
-st.set_page_config(page_title="Math AI", layout="wide")
+st.set_page_config(
+    page_title="Math AI",
+    page_icon="logo.png",  # ضع هنا مسار الصورة الصحيحة
+    layout="wide"
+)
+
+# عرض الشعار أعلى الصفحة (اختياري)
+try:
+    img = Image.open("logo.png")  # نفس مسار page_icon أو أي صورة أخرى
+    st.image(img, width=100)
+except:
+    pass
+
 st.title("🧮 Math AI")
 st.caption("✦  ✦")
 
@@ -42,7 +55,7 @@ with tab1:
     b_num = st.number_input("العدد الثاني", value=0.0)
     operation = st.selectbox("اختر العملية", ["جمع", "طرح", "ضرب", "قسمة"])
 
-    if st.button("احسب"):
+    if st.button("احسب", key="calc_btn"):
         if operation == "قسمة" and b_num == 0:
             st.error("❌ لا يمكن القسمة على صفر")
         else:
@@ -66,7 +79,7 @@ with tab2:
         ["التحليل", "القانون العام", "حل تلقائي"]
     )
 
-    if st.button("حل المعادلة"):
+    if st.button("حل المعادلة", key="solve_btn"):
         try:
             if "=" not in eq_input:
                 st.error("❌ يجب أن تحتوي المعادلة على =")
@@ -129,7 +142,7 @@ with tab3:
 
     func_text = st.text_input("أدخل الدالة (مثال: x^2-4x+3)")
 
-    if st.button("ارسم"):
+    if st.button("ارسم", key="plot_btn"):
         try:
             if not func_text:
                 st.warning("⚠ أدخل دالة أولاً")
@@ -139,13 +152,13 @@ with tab3:
 
                 f = lambdify(x, f_sym, "numpy")
                 xs = np.linspace(-10, 10, 400)
-                ys = f(xs)
+                ys = np.array([f(val) for val in xs])
 
                 fig, ax = plt.subplots()
-                ax.plot(xs, ys, linewidth=2)
-                ax.axhline(0)
-                ax.axvline(0)
-                ax.grid(True)
+                ax.plot(xs, ys, 'b', linewidth=2)
+                ax.axhline(0, color='black', linewidth=1)
+                ax.axvline(0, color='black', linewidth=1)
+                ax.grid(True, linestyle='--', alpha=0.7)
 
                 ax.set_title(f"{func_text}")
                 ax.set_xlabel("x")
