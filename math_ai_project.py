@@ -34,7 +34,10 @@ def convert_math_to_python(text):
 # إعداد الخط العربي للـ matplotlib
 # =====================
 arabic_font_path = "./Amiri-Regular.ttf"  # تأكد أن الخط موجود في نفس المجلد
-font_prop = font_manager.FontProperties(fname=arabic_font_path)
+try:
+    font_prop = font_manager.FontProperties(fname=arabic_font_path)
+except:
+    font_prop = None  # إذا لم يكن الخط موجود
 
 def arabic_text(text):
     if not text:
@@ -166,21 +169,32 @@ with tab3:
                 ys = f(xs)
 
                 fig, ax = plt.subplots(figsize=(7,5))
-                ax.plot(xs, ys, color="#FF6347", linewidth=2, label=arabic_text("الدالة"))
+                ax.plot(xs, ys, color="#FF6347", linewidth=2, label="الدالة")
                 ax.axhline(0, color='black', linewidth=1)
                 ax.axvline(0, color='black', linewidth=1)
                 ax.set_facecolor("#F5F5F5")
                 ax.grid(True, linestyle='--', alpha=0.7)
 
-                # ضبط الخط العربي لجميع عناصر الرسم
-                plt.rcParams['font.family'] = font_prop.get_name()
+                # محاولة استخدام الخط العربي إذا كان موجود
+                if font_prop:
+                    try:
+                        plt.rcParams['font.family'] = font_prop.get_name()
+                        ax.set_title(arabic_text(f"رسم الدالة: {func_text}"), fontsize=14, color="#4B0082")
+                        ax.set_xlabel(arabic_text("س"), fontsize=12)
+                        ax.set_ylabel(arabic_text("ص"), fontsize=12)
+                        ax.legend([arabic_text("الدالة")])
+                    except:
+                        ax.set_title(f"رسم الدالة: {func_text}", fontsize=14, color="#4B0082")
+                        ax.set_xlabel("س", fontsize=12)
+                        ax.set_ylabel("ص", fontsize=12)
+                        ax.legend(["الدالة"])
+                else:
+                    ax.set_title(f"رسم الدالة: {func_text}", fontsize=14, color="#4B0082")
+                    ax.set_xlabel("س", fontsize=12)
+                    ax.set_ylabel("ص", fontsize=12)
+                    ax.legend(["الدالة"])
 
-                ax.set_title(arabic_text(f"رسم الدالة: {func_text}"), fontsize=14, color="#4B0082")
-                ax.set_xlabel(arabic_text("س"), fontsize=12)
-                ax.set_ylabel(arabic_text("ص"), fontsize=12)
-                ax.legend()
                 fig.tight_layout()
-
                 st.pyplot(fig)
 
         except Exception as e:
