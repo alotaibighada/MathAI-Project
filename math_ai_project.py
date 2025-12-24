@@ -1,4 +1,3 @@
-from PIL import Image
 import streamlit as st
 from sympy import symbols, Eq, solve, sympify, latex, expand, sqrt, lambdify
 import numpy as np
@@ -9,9 +8,6 @@ import re
 # إعداد الصفحة
 # =====================
 st.set_page_config(page_title="Math AI", layout="wide")
-logo = Image.open("assets/logo.png")
-st.sidebar.image(logo, width=180)
-
 st.title("🧮 Math AI")
 st.caption("✦  ✦")
 
