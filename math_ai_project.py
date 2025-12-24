@@ -24,7 +24,7 @@ st.markdown(
         border-radius: 10px;
         text-align: center;
     ">
-        <h1 style='color:#ffffff;'>🧮 Math AI – أداة رياضية ذكية</h1>
+        <h1 style='color:#ffffff;'>🧮 Math AI </h1>
         <p style='color:#C0C0C0;'>حل المعادلات، العمليات الحسابية، ورسم الدوال بسهولة</p>
     </div>
     """,
