@@ -3,6 +3,9 @@ from sympy import symbols, Eq, solve, sympify, latex, expand, sqrt, lambdify
 import numpy as np
 import matplotlib.pyplot as plt
 import re
+import arabic_reshaper
+from bidi.algorithm import get_display
+from matplotlib import font_manager
 
 # =====================
 # إعداد الصفحة
@@ -26,6 +29,17 @@ def convert_math_to_python(text):
     text = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', text)
     text = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', text)
     return text
+
+# =====================
+# إعداد الخط العربي للـ matplotlib
+# =====================
+arabic_font_path = "Amiri-Regular.ttf"  # ضع هنا مسار الخط العربي TTF
+font_prop = font_manager.FontProperties(fname=arabic_font_path)
+
+def arabic_text(text):
+    reshaped_text = arabic_reshaper.reshape(text)
+    bidi_text = get_display(reshaped_text)
+    return bidi_text
 
 # =====================
 # Tabs
@@ -93,7 +107,6 @@ with tab2:
                 if poly is None or poly.degree() != 2:
                     st.warning("⚠ هذه المعادلة ليست تربيعية")
                 else:
-                    # استخراج المعاملات
                     a = poly.coeff_monomial(x**2)
                     b = poly.coeff_monomial(x)
                     c = poly.coeff_monomial(1)
@@ -122,7 +135,7 @@ with tab2:
 
                     st.markdown("<h4 style='color:#32CD32;'>4️⃣ الحلول</h4>", unsafe_allow_html=True)
                     for i, sol in enumerate(solutions, 1):
-                        st.markdown(f"<span style='color:#FF6347; font-weight:bold;'>x_{i} = {latex(sol)}</span>", unsafe_allow_html=True)
+                        st.markdown(f"<span style='color:#FF6347; font-weight:bold;'>{arabic_text(f'x_{i} = {sol}')}</span>", unsafe_allow_html=True)
 
                     st.success("✔ تم حل المعادلة بنجاح")
 
@@ -151,15 +164,15 @@ with tab3:
                 ys = np.array([f(val) for val in xs])
 
                 fig, ax = plt.subplots(figsize=(7,5))
-                ax.plot(xs, ys, color="#FF6347", linewidth=2, label="الدالة")
+                ax.plot(xs, ys, color="#FF6347", linewidth=2, label=arabic_text("الدالة"))
                 ax.axhline(0, color='black', linewidth=1)
                 ax.axvline(0, color='black', linewidth=1)
                 ax.set_facecolor("#F5F5F5")
                 ax.grid(True, linestyle='--', alpha=0.7)
-                ax.set_title(f"رسم الدالة: {func_text}", fontsize=14, color="#4B0082")
-                ax.set_xlabel("x", fontsize=12)
-                ax.set_ylabel("y", fontsize=12)
-                ax.legend()
+                ax.set_title(arabic_text(f"رسم الدالة: {func_text}"), fontproperties=font_prop, fontsize=14, color="#4B0082")
+                ax.set_xlabel(arabic_text("س"), fontproperties=font_prop, fontsize=12)
+                ax.set_ylabel(arabic_text("ص"), fontproperties=font_prop, fontsize=12)
+                ax.legend(prop=font_prop)
 
                 st.pyplot(fig)
 
