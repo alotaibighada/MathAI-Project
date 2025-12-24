@@ -8,18 +8,26 @@ from PIL import Image
 # =====================
 # إعداد الصفحة + الشعار
 # =====================
+# أولًا نحاول فتح الصورة للتحقق من وجودها
+image_path = "logo.png"  # ضع هنا مسار الصورة الصحيح
+
+try:
+    img = Image.open(image_path)
+    image_exists = True
+except FileNotFoundError:
+    st.warning(f"⚠ لم يتم العثور على الصورة في المسار: {image_path}")
+    image_exists = False
+
+# إعداد الصفحة مع استخدام الأيقونة إذا الصورة موجودة
 st.set_page_config(
     page_title="Math AI",
-    page_icon="logo.png",  # ضع هنا مسار الصورة الصحيحة
+    page_icon=image_path if image_exists else "🧮",
     layout="wide"
 )
 
-# عرض الشعار أعلى الصفحة (اختياري)
-try:
-    img = Image.open("logo.png")  # نفس مسار page_icon أو أي صورة أخرى
+# عرض الصورة أعلى الصفحة داخل التطبيق
+if image_exists:
     st.image(img, width=100)
-except:
-    pass
 
 st.title("🧮 Math AI")
 st.caption("✦  ✦")
