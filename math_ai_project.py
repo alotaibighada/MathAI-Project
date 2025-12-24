@@ -1,5 +1,5 @@
 import streamlit as st
-from sympy import symbols, Eq, solve, sympify, latex, expand, lambdify
+from sympy import symbols, Eq, solve, sympify, latex, expand, factor
 import numpy as np
 import matplotlib.pyplot as plt
 import re
@@ -74,7 +74,7 @@ with tab1:
             st.write(f"✅ النتيجة = {result}")
 
 # ------------------------------------------------
-# Tab 2: حل المعادلات
+# Tab 2: حل المعادلات (3 طرق)
 # ------------------------------------------------
 with tab2:
     st.markdown("<h2 style='color:#32CD32;'>📐 حل المعادلات التربيعية</h2>", unsafe_allow_html=True)
@@ -88,16 +88,50 @@ with tab2:
             else:
                 python_eq = convert_math_to_python(eq_input)
                 left, right = python_eq.split("=")
-                equation = Eq(sympify(left), sympify(right))
-                simplified = expand(equation.lhs - equation.rhs)
+                expr = expand(sympify(left) - sympify(right))
 
-                st.write("المعادلة المبسطة:")
-                st.latex(f"{latex(simplified)} = 0")
+                st.markdown("### ✏️ المعادلة بعد التبسيط")
+                st.latex(f"{latex(expr)} = 0")
 
-                solutions = solve(simplified, x)
-                st.write("الحلول:")
-                for i, sol in enumerate(solutions, 1):
-                    st.latex(f"x_{i} = {latex(sol)}")
+                a = expr.coeff(x, 2)
+                b = expr.coeff(x, 1)
+                c = expr.coeff(x, 0)
+
+                # =====================
+                # 1️⃣ الحل بالتحليل
+                # =====================
+                st.markdown("## ① الحل بالتحليل")
+                factored = factor(expr)
+                if factored != expr:
+                    st.latex(f"{latex(factored)} = 0")
+                    for sol in solve(factored, x):
+                        st.latex(f"x = {latex(sol)}")
+                else:
+                    st.warning("لا يمكن تحليل المعادلة")
+
+                # =====================
+                # 2️⃣ الحل بالقانون العام
+                # =====================
+                st.markdown("## ② الحل بالقانون العام")
+                st.latex("x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}")
+
+                delta = b**2 - 4*a*c
+                st.latex(f"\\Delta = {latex(delta)}")
+
+                if delta < 0:
+                    st.warning("لا يوجد حلول حقيقية")
+                else:
+                    x1 = (-b + delta**0.5) / (2*a)
+                    x2 = (-b - delta**0.5) / (2*a)
+                    st.latex(f"x_1 = {latex(x1)}")
+                    st.latex(f"x_2 = {latex(x2)}")
+
+                # =====================
+                # 3️⃣ الحل المباشر
+                # =====================
+                st.markdown("## ③ الحل المباشر")
+                for sol in solve(expr, x):
+                    st.latex(f"x = {latex(sol)}")
 
         except Exception as e:
             st.error(f"❌ خطأ: {e}")
@@ -112,51 +146,29 @@ with tab3:
 
     if st.button("ارسم", key="plot_btn"):
         try:
-            if not func_text:
-                st.warning("⚠ أدخل دالة أولاً")
-            else:
-                func_python = convert_math_to_python(func_text)
-                f_sym = sympify(func_python)
-                f = lambdify(x, f_sym, "numpy")
+            func_python = convert_math_to_python(func_text)
+            f_sym = sympify(func_python)
 
-                xs = np.linspace(-10, 10, 400)
-                ys = np.array([f(val) for val in xs])
+            xs = np.linspace(-10, 10, 400)
+            ys = [f_sym.subs(x, val) for val in xs]
 
-                fig, ax = plt.subplots(figsize=(7,5))
-                ax.plot(xs, ys, color="#FF6347", linewidth=2)
-                ax.axhline(0, color='black', linewidth=1)
-                ax.axvline(0, color='black', linewidth=1)
-                ax.grid(True, linestyle='--', alpha=0.7)
-                ax.set_title(func_text)
-                ax.set_xlabel("x")
-                ax.set_ylabel("y")
+            fig, ax = plt.subplots(figsize=(7,5))
+            ax.plot(xs, ys)
+            ax.axhline(0)
+            ax.axvline(0)
+            ax.grid(True)
 
-                st.pyplot(fig)
+            st.pyplot(fig)
 
         except Exception as e:
             st.error(f"❌ خطأ في الرسم: {e}")
 
 # =====================
-# Footer ثابت أسفل الصفحة
+# Footer
 # =====================
 st.markdown(
     """
-    <style>
-    .footer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        text-align: center;
-        font-size: 14px;
-        color: #888888;
-        background-color: #F5F5F5;
-        padding: 8px 0;
-        box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
-        z-index: 100;
-    }
-    </style>
-    <div class="footer">
+    <div style="text-align:center;color:#888;font-size:14px;margin-top:30px;">
         © 2025 Ghada Inc. | جميع الحقوق محفوظة
     </div>
     """,
