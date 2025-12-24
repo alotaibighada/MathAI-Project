@@ -84,7 +84,7 @@ with tab2:
                         st.markdown(f"<span style='color:#FF6347; font-weight:bold;'>{arabic_text(f'x_{i} = {sol}')}</span>", unsafe_allow_html=True)
                     st.success("✔ تم حل المعادلة بنجاح")
 
-with tab3:
+ with tab3:
     func_text = st.text_input("أدخل الدالة")
     if st.button("ارسم", key="plot_btn"):
         try:
