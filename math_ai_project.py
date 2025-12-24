@@ -1,5 +1,5 @@
 import streamlit as st
-from sympy import symbols, Eq, solve, sympify, latex, expand, sqrt, I
+from sympy import symbols, Eq, solve, sympify, expand
 import numpy as np
 import matplotlib.pyplot as plt
 import re
@@ -54,54 +54,51 @@ encouragement_messages = [
 ]
 
 # =====================
-# Tabs
+# Tab: حل المعادلات
 # =====================
-tab1, tab2, tab3 = st.tabs([
-    "🔢 العمليات الحسابية",
-    "📐 حل المعادلات",
-    "📊 رسم الدوال"
-])
+st.markdown("<h2 style='color:#32CD32;'>📐 حل المعادلات التربيعية</h2>", unsafe_allow_html=True)
+st.markdown("<p style='color:#555;'>أدخل المعادلة على شكل <b>x^2-4x+3=0</b>:</p>", unsafe_allow_html=True)
 
-# ------------------------------------------------
-# Tab 2: حل المعادلات
-# ------------------------------------------------
-with tab2:
-    st.markdown("<h2 style='color:#32CD32;'>📐 حل المعادلات التربيعية</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#555;'>أدخل المعادلة على شكل <b>x^2-4x+3=0</b> واختر طريقة الحل:</p>", unsafe_allow_html=True)
+eq_input = st.text_input("أدخل المعادلة")
+method = st.radio(
+    "اختر طريقة الحل:",
+    ["القانون العام", "حل تلقائي"]
+)
 
-    eq_input = st.text_input("أدخل المعادلة")
-    method = st.radio(
-        "اختر طريقة الحل:",
-        ["التحليل", "القانون العام", "حل تلقائي"]
-    )
+if st.button("حل المعادلة"):
+    try:
+        if "=" not in eq_input:
+            st.error("❌ يجب أن تحتوي المعادلة على =")
+        else:
+            st.markdown("<h4 style='color:#4B0082;'>1️⃣ المعادلة المعطاة</h4>", unsafe_allow_html=True)
+            st.write(eq_input)
 
-    if st.button("حل المعادلة", key="solve_btn"):
-        try:
-            if "=" not in eq_input:
-                st.error("❌ يجب أن تحتوي المعادلة على =")
-            else:
-                st.markdown("<h4 style='color:#4B0082;'>1️⃣ المعادلة المعطاة</h4>", unsafe_allow_html=True)
-                st.write(eq_input)
+            python_eq = convert_math_to_python(eq_input)
+            left, right = python_eq.split("=")
+            equation = Eq(sympify(left), sympify(right))
+            simplified = expand(equation.lhs - equation.rhs)
 
-                python_eq = convert_math_to_python(eq_input)
-                left, right = python_eq.split("=")
-                equation = Eq(sympify(left), sympify(right))
-                simplified = expand(equation.lhs - equation.rhs)
+            st.markdown("<h4 style='color:#4B0082;'>2️⃣ الصورة العامة</h4>", unsafe_allow_html=True)
+            st.latex(f"{simplified} = 0")
 
-                st.markdown("<h4 style='color:#4B0082;'>2️⃣ الصورة العامة</h4>", unsafe_allow_html=True)
-                st.latex(f"{latex(simplified)} = 0")
+            # حل المعادلة (يدعم المركبات)
+            solutions = solve(simplified, x)
 
-                # الحلول باستخدام SymPy (يدعم المركبات)
-                solutions = solve(simplified, x)
+            st.markdown("<h4 style='color:#32CD32;'>3️⃣ الحلول</h4>", unsafe_allow_html=True)
+            for i, sol in enumerate(solutions, 1):
+                # تحويل الجزء الحقيقي والتخيلي إلى أرقام عشرية
+                real_part = float(sol.as_real_imag()[0])
+                imag_part = float(sol.as_real_imag()[1])
+                if imag_part == 0:
+                    sol_str = f"{real_part:.3f}"
+                else:
+                    sol_str = f"{real_part:.3f} {'+' if imag_part>0 else '-'} {abs(imag_part):.3f}i"
+                st.markdown(f"<span style='color:#FF6347; font-weight:bold;'>x_{i} = {sol_str}</span>", unsafe_allow_html=True)
 
-                st.markdown("<h4 style='color:#32CD32;'>3️⃣ الحلول</h4>", unsafe_allow_html=True)
-                for i, sol in enumerate(solutions, 1):
-                    st.markdown(f"<span style='color:#FF6347; font-weight:bold;'>x_{i} = {latex(sol)}</span>", unsafe_allow_html=True)
+            st.success("✔ تم حل المعادلة بنجاح")
 
-                st.success("✔ تم حل المعادلة بنجاح")
+            # عرض عبارة تشجيعية عشوائية
+            st.info(random.choice(encouragement_messages))
 
-                # عرض عبارة تشجيعية عشوائية
-                st.info(random.choice(encouragement_messages))
-
-        except Exception as e:
-            st.error(f"❌ خطأ: {e}")
+    except Exception as e:
+        st.error(f"❌ خطأ: {e}")
