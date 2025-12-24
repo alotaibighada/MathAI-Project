@@ -1,6 +1,4 @@
-arabic-reshaper
-python-bidi
+streamlit
 sympy
 numpy
 matplotlib
-streamlit
