@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # =====================
-# Header مع خلفية تقنية
+# Header
 # =====================
 st.markdown(
     """
@@ -47,10 +47,10 @@ def convert_math_to_python(text):
 # عبارات تشجيعية
 # =====================
 encouragement_messages = [
-    "🎉 رائع! لقد تمكنت من حل المعادلة بنجاح. كل خطوة تقربك أكثر لفهم الرياضيات!",
-    "💡 تذكّر: دلتا (Δ) تحدد عدد الحلول الحقيقية أو المركبة للمعادلة التربيعية.",
-    "✨ ممتاز! كل عملية حسابية تتقنها تزيد من مهارتك الرياضية!",
-    "🧠 فهم المعادلات خطوة مهمة للوصول إلى حلول دقيقة ومبتكرة!",
+    "🎉 رائع! لقد تمكنت من حل المعادلة بنجاح!",
+    "💡 كل خطوة تقربك أكثر لفهم الرياضيات!",
+    "✨ ممتاز! كل عملية حسابية تتقنها تزيد من مهارتك!",
+    "🧠 فهم المعادلات خطوة مهمة للوصول إلى حلول دقيقة!",
 ]
 
 # =====================
@@ -67,7 +67,6 @@ tab1, tab2, tab3 = st.tabs([
 # ------------------------------------------------
 with tab1:
     st.markdown("<h2 style='color:#1E90FF;'>🔢 العمليات الحسابية</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#555;'>اختر الأعداد والعملية الحسابية، ثم اضغط <b>احسب</b>:</p>", unsafe_allow_html=True)
 
     a_num = st.number_input("العدد الأول", value=0.0)
     b_num = st.number_input("العدد الثاني", value=0.0)
@@ -90,34 +89,26 @@ with tab1:
 # ------------------------------------------------
 with tab2:
     st.markdown("<h2 style='color:#32CD32;'>📐 حل المعادلات التربيعية</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#555;'>أدخل المعادلة على شكل <b>x^2-4x+3=0</b> واختر طريقة الحل:</p>", unsafe_allow_html=True)
 
     eq_input = st.text_input("أدخل المعادلة")
-    method = st.radio(
-        "اختر طريقة الحل:",
-        ["التحليل", "القانون العام", "حل تلقائي"]
-    )
+    method = st.radio("اختر طريقة الحل:", ["التحليل", "القانون العام", "حل تلقائي"])
 
     if st.button("حل المعادلة", key="solve_btn"):
         try:
             if "=" not in eq_input:
                 st.error("❌ يجب أن تحتوي المعادلة على =")
             else:
-                st.markdown("<h4 style='color:#4B0082;'>1️⃣ المعادلة المعطاة</h4>", unsafe_allow_html=True)
-                st.write(eq_input)
-
                 python_eq = convert_math_to_python(eq_input)
                 left, right = python_eq.split("=")
                 equation = Eq(sympify(left), sympify(right))
                 simplified = expand(equation.lhs - equation.rhs)
 
-                st.markdown("<h4 style='color:#4B0082;'>2️⃣ الصورة العامة</h4>", unsafe_allow_html=True)
+                st.markdown("<h4 style='color:#4B0082;'>المعادلة المبسطة</h4>", unsafe_allow_html=True)
                 st.latex(f"{latex(simplified)} = 0")
 
-                # حل المعادلة (يدعم الكسور والأعداد المركبة)
                 solutions = solve(simplified, x)
 
-                st.markdown("<h4 style='color:#32CD32;'>3️⃣ الحلول</h4>", unsafe_allow_html=True)
+                st.markdown("<h4 style='color:#32CD32;'>الحلول</h4>", unsafe_allow_html=True)
                 for i, sol in enumerate(solutions, 1):
                     st.markdown(f"<span style='color:#FF6347; font-weight:bold;'>x_{i} = ${latex(sol)}$</span>", unsafe_allow_html=True)
 
@@ -132,10 +123,9 @@ with tab2:
 # ------------------------------------------------
 with tab3:
     st.markdown("<h2 style='color:#FF8C00;'>📊 رسم الدوال</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#555;'>أدخل الدالة على شكل <b>x^2-4x+3</b> ثم اضغط <b>ارسم</b>:</p>", unsafe_allow_html=True)
 
     func_text = st.text_input("أدخل الدالة")
-    points_input = st.text_input("أدخل قيم x للنقاط المحددة (مفصولة بفواصل، مثال: -2,0,3)")
+    points_input = st.text_input("أدخل قيم x للنقاط المحددة (مثال: -2,0,3)")
 
     if st.button("ارسم", key="plot_btn"):
         try:
@@ -160,12 +150,12 @@ with tab3:
                 ax.set_ylabel("y", fontsize=12)
 
                 # =====================
-                # تحديد النقاط المختارة فقط
+                # نقاط محددة فقط إذا أدخل المستخدم
                 # =====================
                 if points_input.strip() != "":
                     xs_points = [float(val.strip()) for val in points_input.split(",")]
                     ys_points = [f(val) for val in xs_points]
-                    ax.scatter(xs_points, ys_points, color="blue", s=60, zorder=5)  # رسم النقاط
+                    ax.scatter(xs_points, ys_points, color="blue", s=60, zorder=5)
                     for xp, yp in zip(xs_points, ys_points):
                         ax.text(xp, yp, f"({xp},{yp:.2f})", fontsize=9, color="darkblue", ha='right', va='bottom')
 
@@ -176,7 +166,7 @@ with tab3:
             st.error(f"❌ خطأ في الرسم: {e}")
 
 # =====================
-# Footer ثابت بحقوق الطبع والنشر
+# Footer
 # =====================
 st.markdown(
     """
